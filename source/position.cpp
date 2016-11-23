@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <sstream>
 
 #include "position.h"
@@ -8,7 +8,7 @@
 using namespace std;
 using namespace Effect8;
 
-std::string SFEN_HIRATE = "lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL b - 1";
+std::string SFEN_HIRATE = "rbsgk/4p/5/P4/KGSBR b - 1";
 
 // 局面のhash keyを求めるときに用いるZobrist key
 namespace Zobrist {
@@ -147,7 +147,7 @@ void Position::set(std::string sfen)
 	// --- 盤面
 
 	// 盤面左上から。Square型のレイアウトに依らずに処理を進めたいため、Square型は使わない。
-	File f = FILE_9;
+	File f = FILE_5;
 	Rank r = RANK_1;
 
 	std::istringstream ss(sfen);
@@ -181,7 +181,7 @@ void Position::set(std::string sfen)
 		// '/'は次の段を意味する                              
 		else if (token == '/')
 		{
-			f = FILE_9;
+			f = FILE_5;
 			++r;
 		}
 		// '+'は次の駒が成駒であることを意味する
@@ -293,9 +293,9 @@ const std::string Position::sfen() const
 
 	// --- 盤面
 	int emptyCnt;
-	for (Rank r = RANK_1; r <= RANK_9; ++r)
+	for (Rank r = RANK_1; r <= RANK_5; ++r)
 	{
-		for (File f = FILE_9; f >= FILE_1; --f)
+		for (File f = FILE_5; f >= FILE_1; --f)
 		{
 			// それぞれの升に対して駒がないなら
 			// その段の、そのあとの駒のない升をカウントする
@@ -312,7 +312,7 @@ const std::string Position::sfen() const
 		}
 
 		// 最下段以外では次の行があるのでセパレーターである'/'を出力する。
-		if (r < RANK_9)
+		if (r < RANK_5)
 			ss << '/';
 	}
 
@@ -393,9 +393,9 @@ void Position::set_state(StateInfo* si) const {
 std::ostream& operator<<(std::ostream& os, const Position& pos)
 {
 	// 盤面
-	for (Rank r = RANK_1; r <= RANK_9; ++r)
+	for (Rank r = RANK_1; r <= RANK_5; ++r)
 	{
-		for (File f = FILE_9; f >= FILE_1; --f)
+		for (File f = FILE_5; f >= FILE_1; --f)
 			os << pretty(pos.board[f | r]);
 		os << endl;
 	}
@@ -856,7 +856,7 @@ bool Position::pseudo_legal_s(const Move m) const {
         // これが非合法手であることはない。
 
         if (pt == PAWN || pt == LANCE)
-          if ((us == BLACK && rank_of(to) == RANK_1) || (us == WHITE && rank_of(to) == RANK_9))
+          if ((us == BLACK && rank_of(to) == RANK_1) || (us == WHITE && rank_of(to) == RANK_5))
             return false;
       } else {
         // 歩の不成と香の2段目への不成を禁止。
@@ -869,7 +869,7 @@ bool Position::pseudo_legal_s(const Move m) const {
           break;
 
         case LANCE:
-          if ((us == BLACK && rank_of(to) <= RANK_2) || (us == WHITE && rank_of(to) >= RANK_8))
+          if ((us == BLACK && rank_of(to) <= RANK_2) || (us == WHITE && rank_of(to) >= RANK_4))
             return false;
           break;
 

@@ -563,7 +563,7 @@ struct Position
 	void set_from_packed_sfen(const PackedSfen& sfen);
 
 	// 盤面と手駒、手番を与えて、そのsfenを返す。
-	static std::string sfen_from_rawdata(Piece board[81], Hand hands[2], Color turn, int gamePly);
+	static std::string sfen_from_rawdata(Piece board[SQ_NB], Hand hands[COLOR_NB], Color turn, int gamePly);
 
 	// sq1,sq2の駒を入れ替える。(という指し手だと思うと良い)
 	// 棋譜生成のときなど特殊な用途に用いる。王手されている局面で呼び出してはならない。

@@ -12,27 +12,19 @@
 // ----------------------------------------
 
 File SquareToFile[SQ_NB] = {
-  FILE_1, FILE_1, FILE_1, FILE_1, FILE_1, FILE_1, FILE_1, FILE_1, FILE_1,
-  FILE_2, FILE_2, FILE_2, FILE_2, FILE_2, FILE_2, FILE_2, FILE_2, FILE_2,
-  FILE_3, FILE_3, FILE_3, FILE_3, FILE_3, FILE_3, FILE_3, FILE_3, FILE_3,
-  FILE_4, FILE_4, FILE_4, FILE_4, FILE_4, FILE_4, FILE_4, FILE_4, FILE_4,
-  FILE_5, FILE_5, FILE_5, FILE_5, FILE_5, FILE_5, FILE_5, FILE_5, FILE_5,
-  FILE_6, FILE_6, FILE_6, FILE_6, FILE_6, FILE_6, FILE_6, FILE_6, FILE_6,
-  FILE_7, FILE_7, FILE_7, FILE_7, FILE_7, FILE_7, FILE_7, FILE_7, FILE_7,
-  FILE_8, FILE_8, FILE_8, FILE_8, FILE_8, FILE_8, FILE_8, FILE_8, FILE_8,
-  FILE_9, FILE_9, FILE_9, FILE_9, FILE_9, FILE_9, FILE_9, FILE_9, FILE_9
+  FILE_1, FILE_1, FILE_1, FILE_1, FILE_1,
+  FILE_2, FILE_2, FILE_2, FILE_2, FILE_2,
+  FILE_3, FILE_3, FILE_3, FILE_3, FILE_3,
+  FILE_4, FILE_4, FILE_4, FILE_4, FILE_4,
+  FILE_5, FILE_5, FILE_5, FILE_5, FILE_5,
 };
 
 Rank SquareToRank[SQ_NB] = {
-  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9,
-  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9,
-  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9,
-  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9,
-  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9,
-  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9,
-  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9,
-  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9,
-  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9,
+  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5,
+  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5,
+  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5,
+  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5,
+  RANK_1, RANK_2, RANK_3, RANK_4, RANK_5,
 };
 
 std::string PieceToCharBW(" PLNSBRGK        plnsbrgk");
@@ -42,8 +34,8 @@ std::string PieceToCharBW(" PLNSBRGK        plnsbrgk");
 // operator<<(std::ostream& os,...)とpretty() 
 // ----------------------------------------
 
-std::string pretty(File f) { return pretty_jp ? std::string("１２３４５６７８９").substr((int32_t)f * 2, 2) : std::to_string((int32_t)f + 1); }
-std::string pretty(Rank r) { return pretty_jp ? std::string("一二三四五六七八九").substr((int32_t)r * 2, 2) : std::to_string((int32_t)r + 1); }
+std::string pretty(File f) { return pretty_jp ? std::string("１２３４５").substr((int32_t)f * 2, 2) : std::to_string((int32_t)f + 1); }
+std::string pretty(Rank r) { return pretty_jp ? std::string("一二三四五").substr((int32_t)r * 2, 2) : std::to_string((int32_t)r + 1); }
 
 std::string pretty(Move m)
 {

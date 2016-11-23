@@ -11,37 +11,32 @@ using namespace std;
 
 // ----- Bitboard const
 
-Bitboard ALL_BB = Bitboard(UINT64_C(0x7FFFFFFFFFFFFFFF), UINT64_C(0x3FFFF));
-Bitboard ZERO_BB = Bitboard(0, 0);
+Bitboard ALL_BB = Bitboard(UINT32_C(0x1FFFFFF));
+Bitboard ZERO_BB = Bitboard(0);
 
-Bitboard FILE1_BB = Bitboard(UINT64_C(0x1ff) << (9 * 0), 0);
-Bitboard FILE2_BB = Bitboard(UINT64_C(0x1ff) << (9 * 1), 0);
-Bitboard FILE3_BB = Bitboard(UINT64_C(0x1ff) << (9 * 2), 0);
-Bitboard FILE4_BB = Bitboard(UINT64_C(0x1ff) << (9 * 3), 0);
-Bitboard FILE5_BB = Bitboard(UINT64_C(0x1ff) << (9 * 4), 0);
-Bitboard FILE6_BB = Bitboard(UINT64_C(0x1ff) << (9 * 5), 0);
-Bitboard FILE7_BB = Bitboard(UINT64_C(0x1ff) << (9 * 6), 0);
-Bitboard FILE8_BB = Bitboard(0, 0x1ff << (9 * 0));
-Bitboard FILE9_BB = Bitboard(0, 0x1ff << (9 * 1));
+Bitboard FILE1_BB = Bitboard(UINT32_C(0x1f) << (5 * 0));
+Bitboard FILE2_BB = Bitboard(UINT32_C(0x1f) << (5 * 1));
+Bitboard FILE3_BB = Bitboard(UINT32_C(0x1f) << (5 * 2));
+Bitboard FILE4_BB = Bitboard(UINT32_C(0x1f) << (5 * 3));
+Bitboard FILE5_BB = Bitboard(UINT32_C(0x1f) << (5 * 4));
 
-Bitboard RANK1_BB = Bitboard(UINT64_C(0x40201008040201) << 0, 0x201 << 0);
-Bitboard RANK2_BB = Bitboard(UINT64_C(0x40201008040201) << 1, 0x201 << 1);
-Bitboard RANK3_BB = Bitboard(UINT64_C(0x40201008040201) << 2, 0x201 << 2);
-Bitboard RANK4_BB = Bitboard(UINT64_C(0x40201008040201) << 3, 0x201 << 3);
-Bitboard RANK5_BB = Bitboard(UINT64_C(0x40201008040201) << 4, 0x201 << 4);
-Bitboard RANK6_BB = Bitboard(UINT64_C(0x40201008040201) << 5, 0x201 << 5);
-Bitboard RANK7_BB = Bitboard(UINT64_C(0x40201008040201) << 6, 0x201 << 6);
-Bitboard RANK8_BB = Bitboard(UINT64_C(0x40201008040201) << 7, 0x201 << 7);
-Bitboard RANK9_BB = Bitboard(UINT64_C(0x40201008040201) << 8, 0x201 << 8);
+Bitboard RANK1_BB = Bitboard(UINT32_C(0x108421) << 0);
+Bitboard RANK2_BB = Bitboard(UINT32_C(0x108421) << 1);
+Bitboard RANK3_BB = Bitboard(UINT32_C(0x108421) << 2);
+Bitboard RANK4_BB = Bitboard(UINT32_C(0x108421) << 3);
+Bitboard RANK5_BB = Bitboard(UINT32_C(0x108421) << 4);
 
-Bitboard FILE_BB[FILE_NB] = { FILE1_BB,FILE2_BB,FILE3_BB,FILE4_BB,FILE5_BB,FILE6_BB,FILE7_BB,FILE8_BB,FILE9_BB };
-Bitboard RANK_BB[RANK_NB] = { RANK1_BB,RANK2_BB,RANK3_BB,RANK4_BB,RANK5_BB,RANK6_BB,RANK7_BB,RANK8_BB,RANK9_BB };
+Bitboard FILE_BB[FILE_NB] = { FILE1_BB,FILE2_BB,FILE3_BB,FILE4_BB,FILE5_BB };
+Bitboard RANK_BB[RANK_NB] = { RANK1_BB,RANK2_BB,RANK3_BB,RANK4_BB,RANK5_BB };
 
 Bitboard InFrontBB[COLOR_NB][RANK_NB] = {
-  { ZERO_BB,RANK1_BB, RANK1_BB | RANK2_BB , RANK1_BB | RANK2_BB | RANK3_BB , RANK1_BB | RANK2_BB | RANK3_BB | RANK4_BB,
-  ~(RANK9_BB | RANK8_BB | RANK7_BB | RANK6_BB) , ~(RANK9_BB | RANK8_BB | RANK7_BB),~(RANK9_BB | RANK8_BB),~RANK9_BB },
-  { ~RANK1_BB , ~(RANK1_BB | RANK2_BB) , ~(RANK1_BB | RANK2_BB | RANK3_BB),~(RANK1_BB | RANK2_BB | RANK3_BB | RANK4_BB),
-  RANK9_BB | RANK8_BB | RANK7_BB | RANK6_BB , RANK9_BB | RANK8_BB | RANK7_BB , RANK9_BB | RANK8_BB , RANK9_BB , ZERO_BB }
+  { ZERO_BB,RANK1_BB, RANK1_BB | RANK2_BB ,
+      RANK1_BB | RANK2_BB | RANK3_BB ,
+      RANK1_BB | RANK2_BB | RANK3_BB | RANK4_BB },
+  { ~RANK1_BB , ~(RANK1_BB | RANK2_BB) ,
+      ~(RANK1_BB | RANK2_BB | RANK3_BB),
+      ~(RANK1_BB | RANK2_BB | RANK3_BB | RANK4_BB),
+      ZERO_BB }
 };
 
 // ----- Bitboard tables
@@ -66,7 +61,7 @@ Bitboard RookEffectMask[SQ_NB_PLUS1];
 int RookEffectIndex[SQ_NB_PLUS1];
 
 // 歩が打てる筋を得るためのBitboard
-// bit0..9筋に歩が打てないなら1 , bit1..8筋に , … , bit8..1筋に歩が打てないなら1
+// bit0..5筋に歩が打てないなら1 , bit1..4筋に , … , bit8..1筋に歩が打てないなら1
 // というbit列をindexとして、歩の打てるBitboardを返すためのテーブル。
 Bitboard PAWN_DROP_MASK_BB[0x200][COLOR_NB];
 
@@ -77,7 +72,8 @@ Bitboard CheckCandidateBB[SQ_NB_PLUS1][HDK][COLOR_NB];
 // SquareからSquareWithWallへの変換テーブル
 SquareWithWall sqww_table[SQ_NB_PLUS1];
 
-int Slide[SQ_NB_PLUS1] = {
+// TODO:
+/*int Slide[SQ_NB_PLUS1] = {
   1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 ,
   10, 10, 10, 10, 10, 10, 10, 10, 10,
   19, 19, 19, 19, 19, 19, 19, 19, 19,
@@ -88,14 +84,23 @@ int Slide[SQ_NB_PLUS1] = {
   1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 , 1 ,
   10, 10, 10, 10, 10, 10, 10, 10, 10,
   0 , // SQ_NB用
+};*/
+
+int Slide[SQ_NB_PLUS1] = {
+    1 , 1 , 1 , 1 , 1 ,
+    6 , 6 , 6 , 6 , 6 ,
+    11, 11, 11, 11, 11,
+    16, 16, 16, 16, 16,
+    21, 21, 21, 21, 21,
+    0 , // SQ_NB用
 };
 
 // Bitboardを表示する(USI形式ではない) デバッグ用
 std::ostream& operator<<(std::ostream& os, const Bitboard& board)
 {
-  for (Rank rank = RANK_1; rank <= RANK_9; ++rank)
+  for (Rank rank = RANK_1; rank <= RANK_5; ++rank)
   {
-    for (File file = FILE_9; file >= FILE_1; --file)
+    for (File file = FILE_5; file >= FILE_1; --file)
       os << ((board & (file | rank)) ? " *" : " .");
     os << endl;
   }
@@ -166,8 +171,7 @@ void Bitboards::init()
   {
     Rank r = rank_of(sq);
     File f = file_of(sq);
-    SquareBB[sq].p[0] = (f <= FILE_7) ? ((uint64_t)1 << (f * 9 + r)) : 0;
-    SquareBB[sq].p[1] = (f >= FILE_8) ? ((uint64_t)1 << ((f - FILE_8) * 9 + r)) : 0;
+    SquareBB[sq] = (uint32_t)1 << (f * 5 + r);
   }
 
 
@@ -217,8 +221,8 @@ void Bitboards::init()
 
       result = ZERO_BB;
 
-      for (Rank r = RANK_2; r <= RANK_8; ++r)
-        for (File f = FILE_2; f <= FILE_8; ++f)
+      for (Rank r = RANK_2; r <= RANK_4; ++r)
+        for (File f = FILE_2; f <= FILE_4; ++f)
           // 外周は角の利きには関係ないのでそこは除外する。
           if (abs(rank_of(sq) - r) == abs(file_of(sq) - f))
             result ^= (f | r);
@@ -230,9 +234,9 @@ void Bitboards::init()
 
       // 外周に居ない限り、その外周升は利きの計算には関係ない。
       if (file_of(sq) != FILE_1) { result &= ~FILE1_BB; }
-      if (file_of(sq) != FILE_9) { result &= ~FILE9_BB; }
+      if (file_of(sq) != FILE_5) { result &= ~FILE5_BB; }
       if (rank_of(sq) != RANK_1) { result &= ~RANK1_BB; }
-      if (rank_of(sq) != RANK_9) { result &= ~RANK9_BB; }
+      if (rank_of(sq) != RANK_5) { result &= ~RANK5_BB; }
     }
 
     // sqの地点は関係ないのでクリアしておく。
@@ -265,7 +269,7 @@ void Bitboards::init()
       // p[0]とp[1]が被覆していると正しく計算できないのでNG。
       // Bitboardのレイアウト的に、正しく計算できるかのテスト。
       // 縦型Bitboardであるならp[0]のbit63を余らせるようにしておく必要がある。
-      ASSERT_LV3(!(masks[sq].p[0] & masks[sq].p[1]));
+      ASSERT_LV3(!(masks[sq].cross_over()));
 
       // sqの升用に何bit情報を拾ってくるのか
       const int bits = masks[sq].pop_count();
@@ -292,7 +296,7 @@ void Bitboards::init()
   for (auto c : COLOR)
     for (auto sq : SQ)
     {
-      const Bitboard blockMask = FILE_BB[file_of(sq)] & ~(RANK1_BB | RANK9_BB);
+      const Bitboard blockMask = FILE_BB[file_of(sq)] & ~(RANK1_BB | RANK5_BB);
       const int num1s = 7;
       for (int i = 0; i < (1 << num1s); ++i) {
         Bitboard occupied = indexToOccupied(i, num1s, blockMask);
@@ -353,15 +357,15 @@ void Bitboards::init()
 
   // 7) 二歩用のテーブル初期化
 
-  for (int i = 0; i <= 0x1ff; ++i)
+  for (int i = 0; i <= 0x1f; ++i)
   {
     Bitboard b = ZERO_BB;
-    for (int k = 0; k < 9; ++k)
+    for (int k = 0; k < 5; ++k)
       if ((i & (1 << k)) == 0)
         b |= FILE_BB[k];
 
-    PAWN_DROP_MASK_BB[i][BLACK] = b & rank1_n_bb(WHITE, RANK_8); // 2～9段目まで
-    PAWN_DROP_MASK_BB[i][WHITE] = b & rank1_n_bb(BLACK, RANK_8); // 1～8段目まで
+    PAWN_DROP_MASK_BB[i][BLACK] = b & rank1_n_bb(WHITE, RANK_4); // 2～5段目まで
+    PAWN_DROP_MASK_BB[i][WHITE] = b & rank1_n_bb(BLACK, RANK_4); // 1～4段目まで
   }
 
   // 8) BetweenBB , LineBBの初期化
@@ -414,7 +418,7 @@ void Bitboards::init()
       {
         if (file_of(ksq) != FILE_1)
           target |= lanceStepEffect(them, ksq + SQ_R);
-        if (file_of(ksq) != FILE_9)
+        if (file_of(ksq) != FILE_5)
           target |= lanceStepEffect(them, ksq + SQ_L);
       }
       CheckCandidateBB[ksq][LANCE - 1][Us] = target;

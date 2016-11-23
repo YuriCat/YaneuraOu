@@ -90,7 +90,7 @@ Move Position::DeclarationWin() const
   case EKR_TRY_RULE:
   {
     Color us = sideToMove;
-    Square king_try_sq = (us == BLACK ? SQ_51 : SQ_59);
+    Square king_try_sq = (us == BLACK ? SQ_11 : SQ_55);
     Square king_sq = king_square(us);
 
     // 1) 初期陣形で敵玉がいた場所に自玉が移動できるか。

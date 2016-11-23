@@ -1,4 +1,4 @@
-﻿#include "mate1ply.h"
+#include "mate1ply.h"
 
 // 超高速1手詰め判定ライブラリ
 // 利きを用いる場合の実装
@@ -337,7 +337,7 @@ MOVE_MATE:
         goto NextCandidate;
 
       // 香で2段目での成で詰まないなら不成で詰むことはない。(1手詰めにおいては)
-      if (pt == LANCE && (rank_of(to) == ((Us == BLACK) ? RANK_2 : RANK_8)))
+      if (pt == LANCE && (rank_of(to) == ((Us == BLACK) ? RANK_2 : RANK_4)))
         goto NextCandidate;
     }
 

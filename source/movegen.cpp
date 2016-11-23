@@ -120,8 +120,8 @@ template <Piece Pt, Color Us, bool All> struct make_move_target {
         if (canPromote(Us, to))
         {
           mlist++->move = make_move_promote(from, to) + OurProPt(Us,Pt);
-          if (All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_9))
-            mlist++->move = make_move(from, to) + OurPt(Us,Pt);
+          //if (All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_5))
+          //  mlist++->move = make_move(from, to) + OurPt(Us,Pt);
         } else
           mlist++->move = make_move(from, to) + OurPt(Us,Pt);
       }
@@ -129,19 +129,19 @@ template <Piece Pt, Color Us, bool All> struct make_move_target {
 
       // 成れるなら成りも生成するが、2段目への不成を生成するのはAllのときだけ。また1段目には不成で移動できない。
     case LANCE:
-      {
+      /*{
         target2 = target & enemy_field(Us);
         MAKE_MOVE_TARGET_PRO_ONLY(target2);
         // 不成で移動する升
         target &= All ? (Us == BLACK ? InFrontBB[WHITE][RANK_1] : InFrontBB[BLACK][RANK_9]) :
           (Us == BLACK ? InFrontBB[WHITE][RANK_2] : InFrontBB[BLACK][RANK_8]);
         MAKE_MOVE_TARGET(target);
-      }
+      }*/
       break;
 
       // 成れるなら成りも生成するが、1,2段目には不成で移動できない。
     case KNIGHT:
-      {
+      /*{
         while (target)
         {
           to = target.pop();
@@ -150,7 +150,7 @@ template <Piece Pt, Color Us, bool All> struct make_move_target {
           if ((Us == BLACK && rank_of(to) >= RANK_3) || (Us == WHITE && rank_of(to) <= RANK_7))
             mlist++->move = make_move(from, to) + OurPt(Us, Pt);
         }
-      }
+      }*/
       break;
 
       // 成れるなら成りも生成する駒 
@@ -248,8 +248,8 @@ template <MOVE_GEN_TYPE GenType, Color Us, bool All> struct GeneratePieceMoves<G
 	// 歩の利き
     auto target2 = (Us == BLACK ? shift<SQ_U>(pieces) : shift<SQ_D>(pieces) ) & target;
 
-    // 先手に対する1段目(後手ならば9段目)を表す定数
-    const Rank T_RANK1 = (Us == BLACK) ? RANK_1 : RANK_9;
+    // 先手に対する1段目(後手ならば5段目)を表す定数
+    const Rank T_RANK1 = (Us == BLACK) ? RANK_1 : RANK_5;
 
     while (target2)
     {
@@ -365,13 +365,13 @@ template <Color Us> struct GenerateDropMoves {
       // このときにテーブルを引くので、用意するテーブルのほうで先に1)の処理をしておく。
 
       // 縦型Squareにおける二歩のmaskの取得。
-      // 各筋に1つしか歩はないので1～8段目が1になっているbitboardを歩の升のbitboardに加算すると9段目に情報が集まる。これをpextで回収する。
+      // 各筋に1つしか歩はないので1～4段目が1になっているbitboardを歩の升のbitboardに加算すると5段目に情報が集まる。これをpextで回収する。
 
-      // これにより、RANK9のところに歩の情報がかき集められた。
-      Bitboard a = pos.pieces(Us, PAWN) + rank1_n_bb(BLACK, RANK_8); // 1～8段目を意味するbitboard
+      // これにより、RANK5のところに歩の情報がかき集められた。
+      Bitboard a = pos.pieces(Us, PAWN) + rank1_n_bb(BLACK, RANK_4); // 1～4段目を意味するbitboard
 
-                                                                     // このRANK9に集まった情報をpextで回収。後者はPEXT32でもいいがlatencyたぶん変わらないので…。
-      uint32_t index = uint32_t(PEXT64(a.p[0], RANK9_BB.p[0]) + (PEXT64(a.p[1], RANK9_BB.p[1]) << 7));
+                                                                     // このRANK5に集まった情報をpextで回収。
+      uint32_t index = uint32_t(PEXT32(a.p, RANK5_BB.p));
 
       // 駒の打てる場所
       Bitboard target2 = PAWN_DROP_MASK_BB[index][Us] & target;
@@ -401,7 +401,7 @@ template <Color Us> struct GenerateDropMoves {
       // 基本的な戦略としては、(先手から見て)
       // 1) 1段目に打てない駒( = 香・桂)を除いたループ
       // 2) 2段目に打てない駒( = 桂)を除いたループ
-      // 3) 3～9段目に打てる駒( = すべての駒)のループ
+      // 3) 3～5段目に打てる駒( = すべての駒)のループ
       // という3つの場合分けによるループで構成される。
       // そのため、手駒から香・桂を除いた駒と、桂を除いた駒が必要となる。
 
@@ -440,8 +440,8 @@ template <Color Us> struct GenerateDropMoves {
         // それ以外のケース
 
         Bitboard target1 = target & rank1_n_bb(Us, RANK_1); // 1段目
-        Bitboard target2 = target & (Us == BLACK ? RANK2_BB : RANK8_BB); // 2段目
-        Bitboard target3 = target & rank1_n_bb(~Us, RANK_7); // 3～9段目( == 後手から見たときの1～7段目)
+        Bitboard target2 = target & (Us == BLACK ? RANK2_BB : RANK4_BB); // 2段目
+        Bitboard target3 = target & rank1_n_bb(~Us, RANK_3); // 3～5段目( == 後手から見たときの1～3段目)
 
         switch (num - nextToLance) // 1段目に対する香・桂以外の駒打ちの指し手生成(最大で4種の駒)
         {
@@ -464,7 +464,7 @@ template <Color Us> struct GenerateDropMoves {
         default: UNREACHABLE;
         }
 
-        switch (num) // 3～9段目に対する香を含めた指し手生成(最大で6種の駒)
+        switch (num) // 3～5段目に対する香を含めた指し手生成(最大で6種の駒)
         {
         case 1: FOREACH_BB(target3, sq, { UNROLLER1({ mlist++->move = (Move)(drops[i] + sq); }); }); break;
         case 2: FOREACH_BB(target3, sq, { UNROLLER2({ mlist++->move = (Move)(drops[i] + sq); }); }); break;
@@ -669,14 +669,14 @@ template <Piece Pt,Color Us, bool All,bool Promote>
       mlist++->move = make_move_promote(from, to) + OurProPt(Us,Pt);
     else
     {
-      if (((Pt == PAWN) &&
+      if (/*((Pt == PAWN) &&
           ((!All && !canPromote(Us,to)) ||
-            (All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_9))))
+            (All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_5))))
         || ((Pt == LANCE) &&
-          ((!All && ((Us == BLACK && rank_of(to) >= RANK_3) || (Us == WHITE && rank_of(to) <= RANK_7))) ||
-            (All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_9))))
-        || (Pt == KNIGHT && ((Us == BLACK && rank_of(to) >= RANK_3) || (Us == WHITE && rank_of(to) <= RANK_7)))
-        || (Pt == SILVER)
+          ((!All && ((Us == BLACK && rank_of(to) >= RANK_3) || (Us == WHITE && rank_of(to) <= RANK_3))) ||
+            (All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_5))))
+        || (Pt == KNIGHT && ((Us == BLACK && rank_of(to) >= RANK_3) || (Us == WHITE && rank_of(to) <= RANK_3)))
+        ||*/ (Pt == SILVER)
         || ((Pt == BISHOP || Pt == ROOK) && (!(canPromote(Us,from) || canPromote(Us,to)) || All) )
         )
 

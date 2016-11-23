@@ -1,4 +1,4 @@
-﻿#include "mate1ply.h"
+#include "mate1ply.h"
 #if defined(USE_MATE_1PLY)
 #include "../position.h"
 
@@ -33,7 +33,7 @@ Move Position::weak_mate_n_ply(int ply) const
 
 #ifndef LONG_EFFECT_LIBRARY
 			// toに利きがあるかどうか。mが移動の指し手の場合、mの元の利きを取り除く必要がある。
-			&& (is_drop(m) ? effected_to(us, to) : (attackers_to(us, to, pieces() ^ from_sq(m)) ^ from_sq(m)))
+			&& (is_drop(m) ? effected_to(us, to) : bool(attackers_to(us, to, pieces() ^ from_sq(m)) ^ from_sq(m)))
 
 			// 敵玉の利きは必ずtoにあるのでそれを除いた利きがあるかどうか。
 			&& (attackers_to(them,to,pieces()) ^ king_square(them))

@@ -80,7 +80,7 @@ std::ostream& operator<<(std::ostream& os, Color c);
 // --------------------
 
 //  例) FILE_3なら3筋。
-enum File : int { FILE_1, FILE_2, FILE_3, FILE_4, FILE_5, FILE_6, FILE_7, FILE_8, FILE_9 , FILE_NB , FILE_ZERO=0 };
+enum File : int { FILE_1, FILE_2, FILE_3, FILE_4, FILE_5 , FILE_NB , FILE_ZERO=0 };
 
 // 正常な値であるかを検査する。assertで使う用。
 constexpr bool is_ok(File f) { return FILE_ZERO <= f && f < FILE_NB; }
@@ -101,7 +101,7 @@ inline std::ostream& operator<<(std::ostream& os, File f) { os << (char)('1' + f
 // --------------------
 
 // 例) RANK_4なら4段目。
-enum Rank : int { RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8, RANK_9 , RANK_NB , RANK_ZERO = 0};
+enum Rank : int { RANK_1, RANK_2, RANK_3, RANK_4, RANK_5 , RANK_NB , RANK_ZERO = 0};
 
 // 正常な値であるかを検査する。assertで使う用。
 constexpr bool is_ok(Rank r) { return RANK_ZERO <= r && r < RANK_NB; }
@@ -109,15 +109,12 @@ constexpr bool is_ok(Rank r) { return RANK_ZERO <= r && r < RANK_NB; }
 // 移動元、もしくは移動先の升のrankを与えたときに、そこが成れるかどうかを判定する。
 inline bool canPromote(const Color c, const Rank fromOrToRank) {
   ASSERT_LV1(is_ok(c) && is_ok(fromOrToRank));
-  // 先手9bit(9段) + 後手9bit(9段) = 18bitのbit列に対して、判定すればいい。
-  // ただし ×9みたいな掛け算をするのは嫌なのでbit shiftで済むように先手16bit、後手16bitの32bitのbit列に対して判定する。
-  // このcastにおいて、VC++2015ではwarning C4800が出る。
-  return static_cast<bool>(0x1c00007u & (1u << ((c << 4) + fromOrToRank)));
+  return (int)fromOrToRank == (c << 2);
 }
 
 // 後手の段なら先手から見た段を返す。
 // 例) relative_rank(WHITE,RANK_1) == RANK_9
-inline Rank relative_rank(Color c, Rank r) { return c == BLACK ? r : (Rank)(8 - r); }
+inline Rank relative_rank(Color c, Rank r) { return c == BLACK ? r : (Rank)(4 - r); }
 
 // USIの指し手文字列などで段を表す文字列をここで定義されたRankに変換する。
 inline Rank toRank(char c) { return (Rank)(c - 'a'); }
@@ -135,32 +132,28 @@ inline std::ostream& operator<<(std::ostream& os, Rank r) { os << (char)('a' + r
 // --------------------
 
 // 盤上の升目に対応する定数。
-// 盤上右上(１一が0)、左下(９九)が80
+// 盤上右上(１一が0)、左下(５五)が24
 enum Square : int32_t
 {
   // 以下、盤面の右上から左下までの定数。
   // これを定義していなくとも問題ないのだが、デバッガでSquare型を見たときに
   // どの升であるかが表示されることに価値がある。
-  SQ_11, SQ_12, SQ_13, SQ_14, SQ_15, SQ_16, SQ_17, SQ_18, SQ_19,
-  SQ_21, SQ_22, SQ_23, SQ_24, SQ_25, SQ_26, SQ_27, SQ_28, SQ_29,
-  SQ_31, SQ_32, SQ_33, SQ_34, SQ_35, SQ_36, SQ_37, SQ_38, SQ_39,
-  SQ_41, SQ_42, SQ_43, SQ_44, SQ_45, SQ_46, SQ_47, SQ_48, SQ_49,
-  SQ_51, SQ_52, SQ_53, SQ_54, SQ_55, SQ_56, SQ_57, SQ_58, SQ_59,
-  SQ_61, SQ_62, SQ_63, SQ_64, SQ_65, SQ_66, SQ_67, SQ_68, SQ_69,
-  SQ_71, SQ_72, SQ_73, SQ_74, SQ_75, SQ_76, SQ_77, SQ_78, SQ_79,
-  SQ_81, SQ_82, SQ_83, SQ_84, SQ_85, SQ_86, SQ_87, SQ_88, SQ_89,
-  SQ_91, SQ_92, SQ_93, SQ_94, SQ_95, SQ_96, SQ_97, SQ_98, SQ_99,
+  SQ_11, SQ_12, SQ_13, SQ_14, SQ_15,
+  SQ_21, SQ_22, SQ_23, SQ_24, SQ_25,
+  SQ_31, SQ_32, SQ_33, SQ_34, SQ_35,
+  SQ_41, SQ_42, SQ_43, SQ_44, SQ_45,
+  SQ_51, SQ_52, SQ_53, SQ_54, SQ_55,
 
   // ゼロと末尾
-  SQ_ZERO = 0, SQ_NB = 81,
+  SQ_ZERO = 0, SQ_NB = 25,
   SQ_NB_PLUS1 = SQ_NB + 1, // 玉がいない場合、SQ_NBに移動したものとして扱うため、配列をSQ_NB+1で確保しないといけないときがあるのでこの定数を用いる。
 
   // 方角に関する定数。StockfishだとNORTH=北=盤面の下を意味するようだが、
   // わかりにくいのでやねうら王ではストレートな命名に変更する。
   SQ_D  = +1, // 下(Down)
-  SQ_R  = -9, // 右(Right)
+  SQ_R  = -5, // 右(Right)
   SQ_U  = -1, // 上(Up)
-  SQ_L  = +9, // 左(Left)
+  SQ_L  = +5, // 左(Left)
 
   // 斜めの方角などを意味する定数。
   SQ_RU = int(SQ_U) + int(SQ_R), // 右上(Right Up)
@@ -184,16 +177,16 @@ extern File SquareToFile[SQ_NB];
 
 // 与えられたSquareに対応する筋を返す。
 // →　行数は長くなるが速度面においてテーブルを用いる。
-inline File file_of(Square sq) { /* return (File)(sq / 9); */ ASSERT_LV2(is_ok(sq)); return SquareToFile[sq]; }
+inline File file_of(Square sq) { /* return (File)(sq / 5); */ ASSERT_LV2(is_ok(sq)); return SquareToFile[sq]; }
 
 extern Rank SquareToRank[SQ_NB];
 
 // 与えられたSquareに対応する段を返す。
 // →　行数は長くなるが速度面においてテーブルを用いる。
-inline Rank rank_of(Square sq) { /* return (Rank)(sq % 9); */ ASSERT_LV2(is_ok(sq)); return SquareToRank[sq]; }
+inline Rank rank_of(Square sq) { /* return (Rank)(sq % 5); */ ASSERT_LV2(is_ok(sq)); return SquareToRank[sq]; }
 
 // 筋(File)と段(Rank)から、それに対応する升(Square)を返す。
-inline Square operator | (File f, Rank r) { Square sq = (Square)(f * 9 + r); ASSERT_LV2(is_ok(sq)); return sq; }
+inline Square operator | (File f, Rank r) { Square sq = (Square)(f * 5 + r); ASSERT_LV2(is_ok(sq)); return sq; }
 
 // ２つの升のfileの差、rankの差のうち大きいほうの距離を返す。sq1,sq2のどちらかが盤外ならINT_MAXが返る。
 inline int dist(Square sq1, Square sq2) { return (!is_ok(sq1) || !is_ok(sq2)) ? INT_MAX : std::max(abs(file_of(sq1)-file_of(sq2)) , abs(rank_of(sq1) - rank_of(sq2))); }
@@ -215,7 +208,7 @@ inline bool canPromote(const Color c, const Square from, const Square to)
 inline Square Inv(Square sq) { return (Square)((SQ_NB - 1) - sq); }
 
 // 盤面をミラーしたときの升目を返す
-inline Square Mir(Square sq) { return File(8-file_of(sq)) | rank_of(sq); }
+inline Square Mir(Square sq) { return File(4-file_of(sq)) | rank_of(sq); }
 
 // Squareを綺麗に出力する(USI形式ではない)
 // "PRETTY_JP"をdefineしていれば、日本語文字での表示になる。例 → ８八
@@ -247,7 +240,7 @@ enum SquareWithWall : int32_t {
   SQWW_RU = int(SQWW_R) + int(SQWW_U) , SQWW_RD = int(SQWW_R) + int(SQWW_D) , SQWW_LU = int(SQWW_L) + int(SQWW_U) , SQWW_LD = int(SQWW_L) + int(SQWW_D) ,
 
   // SQ_11の地点に対応する値(他の升はこれ相対で事前に求めテーブルに格納)
-  SQWW_11 = SQ_11 | (1 << 8) /* bit8 is 1 */ | (0 << 9) /*右に0升*/| (0 << 14) /*上に0升*/ | (8 << 19) /*下に8升*/| (8 << 24) /*左に8升*/,
+  SQWW_11 = SQ_11 | (1 << 8) /* bit8 is 1 */ | (0 << 9) /*右に0升*/| (0 << 14) /*上に0升*/ | (4 << 19) /*下に4升*/| (4 << 24) /*左に4升*/,
 
   // SQWW_RIGHTなどを足して行ったときに盤外に行ったときのborrow bitの集合
   SQWW_BORROW_MASK = (1 << 13) | (1 << 18) | (1 << 23) | (1 << 28) ,

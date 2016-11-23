@@ -117,7 +117,7 @@ void init_check_bb()
             // 敵陣なので成りで王手できるから、sqより下段の香も足さないと。
             if (file_of(sq) != FILE_1)
               bb |= lanceStepEffect(~c, sq + SQ_R);
-            if (file_of(sq) != FILE_9)
+            if (file_of(sq) != FILE_5)
               bb |= lanceStepEffect(~c, sq + SQ_L);
           }
 
@@ -157,13 +157,13 @@ void init_check_bb()
             to = tmp.pop();
             bb |= silverEffect(~c, to);
           }
-          // あと4段目の玉に3段目から成っての王手。玉のひとつ下の升とその斜めおよび、
+          // あと2段目の玉に1段目から成っての王手。玉のひとつ下の升とその斜めおよび、
           // 玉のひとつ下の升の2つとなりの升
           {
-            Rank r = (c == BLACK ? RANK_4 : RANK_6);
+            Rank r = (c == BLACK ? RANK_2 : RANK_4);
             if (r == rank_of(sq))
             {
-              r = (c == BLACK ? RANK_3 : RANK_7);
+              r = (c == BLACK ? RANK_1 : RANK_5);
               to = (file_of(sq) | r);
               bb |= to;
               bb |= cross45StepEffect(to);
@@ -171,12 +171,12 @@ void init_check_bb()
               // 2升隣。
               if (file_of(to) >= FILE_3)
                 bb |= (to + SQ_R * 2);
-              if (file_of(to) <= FILE_7)
+              if (file_of(to) <= FILE_3)
                 bb |= (to + SQ_L * 2);
             }
 
-            // 5段目の玉に成りでのバックアタック的な..
-            if (rank_of(sq) == RANK_5)
+            // 3段目の玉に成りでのバックアタック的な..
+            if (rank_of(sq) == RANK_3)
               bb |= knightEffect(c, sq);
           }
           break;
@@ -229,7 +229,7 @@ void init_check_bb()
               bb = kingEffect(sq);
               bb = (c == BLACK) ? shift<SQ_U>(bb) : shift<SQ_D>(bb);
               // →　このシフトでp[0]の63bit目に来ると…まずいのでは..？
-              bb &= ALL_BB; // ALL_BBでand取っとくわ
+              //bb &= ALL_BB; // ALL_BBでand取っとくわ
               break;
 
             case PIECE_TYPE_BITBOARD_LANCE:
@@ -237,7 +237,7 @@ void init_check_bb()
               bb = lanceStepEffect(~c, sq);
               if (file_of(sq) != FILE_1)
                 bb |= lanceStepEffect(~c, sq + SQ_R) | (sq + SQ_R);
-              if (file_of(sq) != FILE_9)
+              if (file_of(sq) != FILE_5)
                 bb |= lanceStepEffect(~c, sq + SQ_L) | (sq + SQ_L);
               break;
 
@@ -335,8 +335,8 @@ void init_check_bb()
 }
 
 // 桂馬が次に成れる移動元の表現のために必要となるので用意。
-static Bitboard RANK3_5BB = RANK3_BB | RANK4_BB | RANK5_BB;
-static Bitboard RANK5_7BB = RANK5_BB | RANK6_BB | RANK7_BB;
+//static Bitboard RANK3_5BB = RANK3_BB | RANK4_BB | RANK5_BB;
+//static Bitboard RANK5_7BB = RANK5_BB | RANK6_BB | RANK7_BB;
 
 //
 //　以下、本当ならPositionに用意すべきヘルパ関数
@@ -1092,7 +1092,7 @@ SILVER_DROP_END:;
 
       // 敵陣で不成りで串刺しにする王手も入れなきゃ..
     LANCE_NO_PRO:;
-      if ((us == BLACK ? RANK3_BB : RANK7_BB) & to)
+      /*if ((us == BLACK ? RANK3_BB : RANK7_BB) & to)
       {
         bb_attacks = lanceStepEffect(us,to);
         if (!(bb_attacks & sq_king)) { continue; }
@@ -1102,7 +1102,7 @@ SILVER_DROP_END:;
         // 串刺しでの両王手はありえない
         if (can_piece_capture(pos, them, to, pinned, slide))   { continue; }
         return make_move(from, to);
-      }
+      }*/
     }
   }
   
@@ -1278,7 +1278,7 @@ SILVER_DROP_END:;
         // 飛車を移動させた結果、oneに敵の利きが生じるかも知らんけど。
         bool is_rook = rookStepEffect(to) & pos.pieces(us, ROOK);
         bool is_dragon = kingEffect(to) & pos.pieces(us, ROOK) & pos.pieces(us, KING);
-        bool is_lance = (canLanceAttack) ? (lanceStepEffect(them,to) & pos.pieces(us, LANCE)) : false;
+        bool is_lance = false;//(canLanceAttack) ? (lanceStepEffect(them,to) & pos.pieces(us, LANCE)) : false;
 
         if (is_rook || is_dragon || is_lance)
         {
@@ -1871,10 +1871,10 @@ DC_CHECK:;
 
       case KNIGHT:
         // 成って詰みはあるか..それだけ見るか..
-        if (!((us==BLACK?RANK3_5BB:RANK5_7BB) & from))
+        /*if (!((us==BLACK?RANK3_5BB:RANK5_7BB) & from))
           continue;
 
-        bb_attacks =knightEffect(us, from) & ~goldEffect(them,sq_king);
+        bb_attacks =knightEffect(us, from) & ~goldEffect(them,sq_king);*/
         break;
 
       case SILVER:

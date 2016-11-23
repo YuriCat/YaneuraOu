@@ -106,12 +106,12 @@ namespace Effect8
   {
     // This algorithm is developed by tanuki- and yaneurao in 2016.
 
-    // sqがSQ_32(p[1]から見るとSQ_92の左の升)に来るように正規化する。(SQ_22だと後半が64回以上のシフトが必要になる)
-    auto t = uint32_t((sq < SQ_32) ? (b.p[0] << int(SQ_32 - sq)) :
-      ((b.p[0] >> int(sq - SQ_32)) | (b.p[1] << int(SQ_92 + SQ_L - sq)))); // p[1]のSQ_92の左の升は、p[0]のSQ_32相当。
+    // sqがSQ_32に来るように正規化する。
+    auto t = uint32_t((sq < SQ_32) ? (b.p << int(SQ_32 - sq)) :
+      ((b.p >> int(sq - SQ_32)))); // p[1]のSQ_92の左の升は、p[0]のSQ_32相当。
 
                                                                               // PEXTで8近傍の状態を回収。
-    return (Directions)PEXT32(t, 0b111000000101000000111000000000);
+    return (Directions)PEXT32(t, 0b111001010011100000);
   }
 
   std::ostream& operator<<(std::ostream& os, Directions d) { return output_around_n(os, d, 3); }
@@ -135,8 +135,8 @@ namespace Effect24
 
     // -- ymm_direct_to_around8[]の初期化
     {
-      u16 d81[81];
-      memset(d81, 0, sizeof(d81));
+      u16 d25[25];
+      memset(d25, 0, sizeof(d25));
       auto sq33_around9 = kingEffect(SQ_33) ^ SQ_33;
 
       for (auto sq : SQ)
@@ -154,10 +154,10 @@ namespace Effect24
           if (sq33_around9 & sqww_to_sq(sqww))
             d |= Effect8::to_directions(dir);
         }
-        d81[sq] = d;
+        d25[sq] = d;
       }
       for (int i = 0; i < 3; ++i)
-        ymm_direct_to_around8[i] = ymm(&d81[i * 16]); // 32byteずつ
+        ymm_direct_to_around8[i] = ymm(&d25[i * 16]); // 32byteずつ
     }
 
   }
@@ -165,11 +165,11 @@ namespace Effect24
   Directions around24(const Bitboard& b, Square sq)
   {
     // sqがSQ_33に来るように正規化する。
-    auto t = (sq < SQ_33) ? (b.p[0] << int(SQ_33 - sq)) :
-      ((b.p[0] >> int(sq - SQ_33)) | (b.p[1] << int(SQ_93 + SQ_L - sq))); // p[1]のSQ_93の左は、p[0]のSQ_33
+    auto t = (sq < SQ_33) ? (b.p << int(SQ_33 - sq)) :
+      ((b.p >> int(sq - SQ_33))); // p[1]のSQ_93の左は、p[0]のSQ_33
 
     // PEXTで24近傍の状態を回収。
-    return (Directions)PEXT64(t, 0b11111000011111000011011000011111000011111);
+    return (Directions)PEXT64(t, 0b1111111111110111111111111);
   }
 
   std::ostream& operator<<(std::ostream& os, Directions d) { return output_around_n(os, d, 5); }
@@ -190,7 +190,7 @@ namespace LongEffect
     // 利きの数をそのまま表示。10以上あるところの利きの表示がおかしくなるので16進数表示にしておく。
     for (auto r : Rank())
     {
-      for (File f = FILE_9; f >= FILE_1; --f)
+      for (File f = FILE_5; f >= FILE_1; --f)
       {
         int e = uint8_t(board.e[f | r]);
         if (e < 16)
@@ -211,7 +211,7 @@ namespace LongEffect
   {
     for (auto r : Rank())
     {
-      for (File f = FILE_9; f >= FILE_1; --f)
+      for (File f = FILE_5; f >= FILE_1; --f)
       {
         auto e = board.le16[f | r];
         // 方角を表示。複数あるなら4個まで表示
