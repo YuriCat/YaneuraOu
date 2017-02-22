@@ -1,6 +1,6 @@
 ﻿#include "../../shogi.h"
 
-#ifdef CHCECK_SHOGI_ENGINE
+#ifdef CHECK_SHOGI_ENGINE
 
 // -----------------------
 //   王手将棋設定部
@@ -649,6 +649,7 @@ namespace CheckShogi
 
 				// これが合法手なら詰み
 				// このnodeに再訪問することはまずないだろうから、置換表に保存する価値はない。
+
 				return mate_in(ss->ply + 1);
 			}
 
@@ -1639,7 +1640,6 @@ namespace CheckShogi
 			// 現在このスレッドで探索している指し手を保存しておく。
 			ss->currentMove = move;
 			ss->counterMoves = &thisThread->counterMoveHistory[moved_sq][moved_pc];
-
 
 			// 指し手で1手進める
 			pos.do_move(move, st, givesCheck);
@@ -3062,11 +3062,9 @@ namespace Learner
 					ASSERT_LV3(-VALUE_INFINITE <= alpha && beta <= VALUE_INFINITE);
 				}
 
-				std::stable_sort(rootMoves.begin() + PVIdx, rootMoves.end());
+				std::stable_sort(rootMoves.begin(), rootMoves.begin() + PVIdx + 1);
 
 			} // multi PV
-
-			std::stable_sort(rootMoves.begin(), rootMoves.begin() + PVIdx + 1);
 		}
 
 		// このPV、途中でNULL_MOVEの可能性があるかも知れないので排除するためにis_ok()を通す。
@@ -3090,5 +3088,5 @@ namespace Learner
 }
 #endif
 
-#endif // CHCECK_SHOGI_ENGINE
+#endif // CHECK_SHOGI_ENGINE
 
