@@ -36,7 +36,13 @@ namespace Eval
     ASSERT_LV5(pos.state()->materialValue == Eval::material(pos));
     return pos.side_to_move() == BLACK ? score : -score;
   }
+  void evaluate_with_no_return(const Position& pos) {}
   Value compute_eval(const Position& pos) { return material(pos); }
+
+    void update_weights(u64 mini_batch_size , u64 epoch){}
+    void add_grad(FloatPair g_){}
+    void save_eval(std::string dir_name){}
+    void init_grad(float eta){}
 
 #endif
 }

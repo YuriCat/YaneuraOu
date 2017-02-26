@@ -1,4 +1,4 @@
-﻿#ifndef _CONFIG_H_
+#ifndef _CONFIG_H_
 #define _CONFIG_H_
 
 // --------------------
@@ -52,7 +52,7 @@
 
 // --- デバッグ時の標準出力への局面表示などに日本語文字列を用いる。
 
-#define PRETTY_JP
+//#define PRETTY_JP
 
 //
 // 以下、デフォルトではdefineしていないので、必要に応じてdefineすること。
@@ -180,7 +180,8 @@
 #ifdef YANEURAOU_NANO_ENGINE
 #define ENGINE_NAME "YaneuraOu nano"
 #define ENABLE_TEST_CMD
-#define EVAL_KPP
+#define EVAL_MATERIAL
+//#define EVAL_KPP
 #define USE_TT_PV
 #define KEEP_LAST_MOVE
 #define KEEP_PIECE_IN_GENERATE_MOVES
@@ -281,6 +282,7 @@
 
 #ifdef YANEURAOU_2017_EARLY_ENGINE
 #define ENGINE_NAME "YaneuraOu 2017 Early"
+//#define EVAL_MATERIAL
 #define EVAL_KPPT
 //#define USE_EVAL_HASH
 #define USE_SEE
