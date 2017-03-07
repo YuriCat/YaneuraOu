@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <cassert>
 
 #include "position.h"
 #include "misc.h"
@@ -1118,6 +1119,10 @@ void Position::do_move_impl(Move m, StateInfo& new_st, bool givesCheck)
 
 			// 捕獲した駒をStateInfoに保存しておく。(undo_moveのため)
 			st->capturedPiece = to_pc;
+            if(to_pc == B_KING || to_pc == W_KING){
+                cerr << "got king" << endl << (*this) << "move = " << m << endl;
+                exit(1);
+            }
 
 #ifndef EVAL_NO_USE
 			// 評価関数で使う駒割りの値も更新
@@ -1291,6 +1296,10 @@ void Position::undo_move_impl(Move m)
 			// 盤面のtoの地点に捕獲されていた駒を復元する
 			PieceNo piece_no2 = piece_no_of(Us, raw_type_of(to_pc)); // 捕っていた駒(手駒にある)のpiece_no
 			ASSERT_LV3(is_ok(piece_no2));
+            /*if(!is_ok(piece_no2)){
+                cerr << Us << " " << to_pc << " " << raw_type_of(to_pc) << " " << piece_no2 << endl;
+                assert(0);
+            }*/
 
 			put_piece(to, to_pc , piece_no2);
 

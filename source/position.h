@@ -604,8 +604,10 @@ private:
 
 	// 王手になるbitboard等を更新する。set_state()とdo_move()のときに自動的に行われる。
 	// null moveのときは利きの更新を少し端折れるのでフラグを渡すことに。
+public:
 	template <bool doNullMove>
 	void set_check_info(StateInfo* si) const;
+private:
 
 	// do_move()の先後分けたもの。内部的に呼び出される。
 	template <Color Us> void do_move_impl(Move m, StateInfo& st, bool givesCheck);

@@ -13,7 +13,7 @@
 
 #include "common/common_all.h"
 
-double kDelta = 0.15;
+double kDelta = 0.157;
 
 // 記録
 int gMoveCount;
@@ -282,6 +282,18 @@ struct Node{
                 
                 DERR << mv;
                 
+                Square to = move_to(mv);
+                Piece to_pc = pos.piece_on(to);
+                if(to_pc == B_KING || to_pc == W_KING){
+                    if(pos.side_to_move() == color_of(to_pc)){
+                        continue;
+                    }else{
+                        // 相手の王を取れているので勝ち...
+                        continue;
+                        //vList.initTerminal(pos.side_to_move() == BLACK);
+                    }
+                }
+                
                 if(!pos.pseudo_legal(mv) || !pos.legal(mv)){
                     DERR << " -> illegal!" << endl;
                     continue;
@@ -299,6 +311,7 @@ struct Node{
                 // 下位ノードの情報を初期化
                 Node node(pos, *this, mv);
                 //node.pos.check_info_update();
+                node.pos.template set_check_info<false>(&si);
                 
                 // 全ての着手の評価値を見るまでは行動評価値を正の値に変換して置いておく
                 //double E = pow(1.01, static_cast<double>(evaluate(node.pos)));
