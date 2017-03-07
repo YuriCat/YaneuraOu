@@ -1,4 +1,5 @@
-﻿#include "../../extra/all.h"
+#include "../../extra/all.h"
+#include "scns.hpp"
 
 // USI拡張コマンド"user"が送られてくるとこの関数が呼び出される。実験に使ってください。
 void user_test(Position& pos_, istringstream& is)
@@ -30,7 +31,7 @@ void MainThread::think()
 {
   // 例)
   //  for (auto th : Threads.slaves) th->start_searching();
-  //  Thread::search();
+  Thread::search();
   //  for (auto th : Threads.slaves) th->wait_for_search_finished();
 }
 
@@ -39,6 +40,8 @@ void MainThread::think()
 // この関数を呼び出したいときは、Thread::search()とすること。
 void Thread::search()
 {
+    Move bestMove = scns(rootPos);
+    sync_cout << "bestmove " << bestMove << sync_endl;
 }
 
 #endif // USER_ENGINE
