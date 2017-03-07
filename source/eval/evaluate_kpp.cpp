@@ -193,6 +193,7 @@ namespace Eval
   {
     // 過去に遡って差分を計算していく。
     auto st = pos.state();
+    StateInfo *prev, *now;
 
     // すでに計算されている。rootか？
     int sumKKP, sumBKPP, sumWKPP;
@@ -223,8 +224,8 @@ namespace Eval
     // 遡るのは一つだけ
     // ひとつずつ遡りながらsumKPPがVALUE_NONEでないところまで探してそこからの差分を計算することは出来るが
     // レアケースだし、StateInfoにEvalListを持たせる必要が出てきて、あまり得しない。
-    auto now = st;
-    auto prev = st->previous;
+    now = st;
+    prev = st->previous;
 
     if (prev->sumKKP == VALUE_NOT_EVALUATED)
     {
