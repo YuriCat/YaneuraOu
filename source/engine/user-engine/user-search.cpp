@@ -29,9 +29,16 @@ void  Search::clear()
 // そのあとslaveスレッドを終了させ、ベストな指し手を返すこと。
 void MainThread::think()
 {
+    static uint64_t sum = 0;
   // 例)
   //  for (auto th : Threads.slaves) th->start_searching();
+    ClockMS clms;
+    clms.start();
   Thread::search();
+    uint64_t tmp = clms.stop();
+    cerr << tmp << endl;
+    sum += tmp;
+    cerr << sum << endl;
   //  for (auto th : Threads.slaves) th->wait_for_search_finished();
 }
 

@@ -13,7 +13,7 @@
 
 #include "common/common_all.h"
 
-double kDelta = 0.157;
+double kDelta = 0.187;
 
 // 記録
 int gMoveCount;
