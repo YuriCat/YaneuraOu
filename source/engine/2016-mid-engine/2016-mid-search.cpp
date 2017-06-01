@@ -42,7 +42,7 @@
 #include "../../thread.h"
 #include "../../misc.h"
 #include "../../tt.h"
-#include "../../extra/book.h"
+#include "../../extra/book/book.h"
 #include "../../move_picker.h"
 #include "../../learn/learn.h"
 
@@ -317,7 +317,7 @@ namespace YaneuraOu2016Mid
 
   // これglobalに確保しているが、スレッドごとに別の局面を探索させる場合は
   // 個別に確保したほうが本当は良い。まあ、そこまで探索性能悪化しないだろうけども…。
-  CounterMoveHistoryStats CounterMoveHistory;
+  CounterMoveHistoryStat CounterMoveHistory;
 
   // いい探索結果だったときにkiller等を更新する
 

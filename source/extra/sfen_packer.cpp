@@ -352,7 +352,7 @@ void Position::set_from_packed_sfen(const PackedSfen& sfen)
 	// 手番
 	sideToMove = (Color)stream.read_one_bit();
 
-#ifndef EVAL_NO_USE
+#if !defined( EVAL_NO_USE )
 	// PieceListを更新する上で、どの駒がどこにあるかを設定しなければならないが、
 	// それぞれの駒をどこまで使ったかのカウンター
 	PieceNo piece_no_count[KING] = { PIECE_NO_ZERO,PIECE_NO_PAWN,PIECE_NO_LANCE,PIECE_NO_KNIGHT,
@@ -393,7 +393,7 @@ void Position::set_from_packed_sfen(const PackedSfen& sfen)
 		PieceNo piece_no =
 			(pc == B_KING) ? PIECE_NO_BKING : // 先手玉
 			(pc == W_KING) ? PIECE_NO_WKING : // 後手玉
-#ifndef EVAL_NO_USE
+#if !defined(EVAL_NO_USE)
 			piece_no_count[raw_type_of(pc)]++; // それ以外
 #else
 			PIECE_NO_ZERO; // とりあえず駒番号は使わないので全部ゼロにしておけばいい。
@@ -410,7 +410,7 @@ void Position::set_from_packed_sfen(const PackedSfen& sfen)
 	// 手駒
 	hand[BLACK] = hand[WHITE] = (Hand)0;
 
-#ifndef EVAL_NO_USE
+#if !defined (EVAL_NO_USE)
 	int i = 0;
 	Piece lastPc = NO_PIECE;
 #endif
@@ -435,9 +435,14 @@ void Position::set_from_packed_sfen(const PackedSfen& sfen)
 	}
 
 	gamePly = 0;
+
+	// put_piece()したのでこのタイミングでupdate
+	// set_state()で駒種別のbitboardを参照するのでそれまでにこの関数を呼び出す必要がある。
+	update_bitboards();
+
 	set_state(st);
 
-#ifndef EVAL_NO_USE
+#if !defined(EVAL_NO_USE)
 	st->materialValue = Eval::material(*this);
 	Eval::compute_eval(*this);
 #endif
@@ -488,75 +493,6 @@ std::string Position::sfen_unpack(const PackedSfen& sfen)
   SfenPacker sp;
   sp.data = (u8*)&sfen;
   return sp.unpack();
-}
-
-// sq1,sq2の駒を入れ替えるような指し手。
-bool Position::do_move_by_swapping_pieces(Square sq1, Square sq2)
-{
-  // この実装、意外と面倒くさい。do_move()と同じだけのケアが必要。面倒なのでsfen()化して戻す。
-
-  ASSERT_LV3(!in_check());
-  ASSERT_LV3(sq1 != SQ_NB && sq2 != SQ_NB);
-
-  auto pc1 = piece_on(sq1);
-  auto pc2 = piece_on(sq2);
-
-  // 同じ駒なので交換する意味がない。
-  if (pc1 == pc2)
-    return false;
-
-  ASSERT_LV3(pc1 != NO_PIECE && color_of(pc1) == side_to_move());
-  ASSERT_LV3(pc2 != NO_PIECE && color_of(pc2) == side_to_move());
-
-  // 非合法局面に突入するかの判定
-  // 1) 歩・香が敵陣の1段目に行くか
-  // 2) 桂が敵陣の1,2段目に行くか
-  // 3) 王手されている局面に突入するか
-  // 4) 次の手番で王が取れる局面に突入するか(次の手番は相手側なのでそれはない)
-  // 5) いずれかの玉が3重に王手されている局面に突入するか(王手されていない局面で呼び出しているのでそれはない)
-  // 6) 二歩局面にいくか。
-
-  // pcの駒をtoに持ってきて合法であるかを判定する。
-  auto legal_piece = [this](Piece pc, Square to)
-  {
-    auto pt = type_of(pc);
-    Color c = color_of(pc);
-    Rank f = relative_rank(c,rank_of(to));
-
-    // 1段目の歩・香
-    if ((pt == PAWN || pt == LANCE) && f == RANK_1)
-      return false;
-
-    // 1,2段目の桂
-    if (pt == KNIGHT && f <= RANK_2)
-      return false;
-
-    // 二歩のチェック
-    if (pt == PAWN && (this->pieces(c, PAWN) & FILE_BB[file_of(to)]))
-      return false;
-
-    // 玉を動かすのであればその移動先に敵の利きがすでにあると、次に相手番なので取られてしまう。
-    if (pt == KING && attackers_to(~c, to))
-      return false;
-
-    return true;
-  };
-  if (!legal_piece(pc1, sq2) || !legal_piece(pc2, sq1))
-    return false;
-
-  // 普通にswap。関係する構造体のこととか知らん。
-  // このあとsfenを取得して再セットするからこれで問題ない。
-  swap(board[sq1], board[sq2]);
-
-  // sfenをset()したときにthis_thread()が破壊されるので退避させておく。
-  auto th = this_thread();
-
-  // 以下、do_move()と同じ処理なのは癪なのでちょっと端折る。
-  set(sfen_from_rawdata(board, hand, ~sideToMove, gamePly + 1));
-
-  set_this_thread(th);
-
-  return true;
 }
 
 

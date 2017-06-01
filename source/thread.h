@@ -89,32 +89,42 @@ struct Thread
 	// rootから最大、何手目まで探索したか(選択深さの最大)
 	int maxPly;
 
+#if !defined(YANEURAOU_2017_EARLY_ENGINE)
 	// 反復深化の深さ(Depth型ではないので注意)
 	int rootDepth;
 
 	// このスレッドに関して、終了した反復深化の深さ(Depth型ではないので注意)
 	int completedDepth;
+#else
+	// 反復深化の深さ
+	Depth rootDepth;
+
+	// このスレッドに関して、終了した反復深化の深さ
+	Depth completedDepth;
+#endif
 
 	// 探索でsearch()が呼び出された回数を集計する用。
 	std::atomic_bool resetCalls;
 	int callsCnt;
 
-#if defined( USE_MOVE_PICKER_2015 ) || defined( USE_MOVE_PICKER_2016Q2 ) || defined( USE_MOVE_PICKER_2016Q3 )
 	// ある種のMovePickerではオーダリングのために、
 	// スレッドごとにhistoryとcounter movesのtableを持たないといけない。
-
-	HistoryStats history;
+#if defined( USE_MOVE_PICKER_2015 )
 	MoveStats counterMoves;
-#endif
-
-#if defined( USE_MOVE_PICKER_2016Q2 ) || defined( USE_MOVE_PICKER_2016Q3 )
+	HistoryStats history;
+#elif defined( USE_MOVE_PICKER_2016Q2 ) || defined( USE_MOVE_PICKER_2016Q3 )
+	MoveStats counterMoves;
+	HistoryStats history;
 	FromToStats fromTo;
+#elif defined ( USE_MOVE_PICKER_2017Q2 )
+	CounterMoveStat counterMoves;
+	ButterflyHistory history;
 #endif
 
 #if defined( PER_THREAD_COUNTERMOVEHISTORY )
 	// コア数が多いか、長い持ち時間においては、スレッドごとにCounterMoveHistoryを確保したほうが良い。
 	// cf. https://github.com/official-stockfish/Stockfish/commit/5c58d1f5cb4871595c07e6c2f6931780b5ac05b5
-	CounterMoveHistoryStats counterMoveHistory;
+	CounterMoveHistoryStat counterMoveHistory;
 #endif
 
 	// ------------------------------

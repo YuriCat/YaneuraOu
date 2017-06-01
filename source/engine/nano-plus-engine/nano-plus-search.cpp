@@ -24,7 +24,7 @@
 #include "../../thread.h"
 #include "../../misc.h"
 #include "../../tt.h"
-#include "../../extra/book.h"
+#include "../../extra/book/book.h"
 #include "../../move_picker.h"
 
 using namespace std;
@@ -82,7 +82,7 @@ namespace YaneuraOuNanoPlus
   // -----------------------
 
   // MovePickerで用いる直前の指し手に対するそれぞれの指し手のスコア
-  CounterMoveHistoryStats CounterMoveHistory;
+  CounterMoveHistoryStat CounterMoveHistory;
 
   // いい探索結果だったときにkiller等を更新する
 

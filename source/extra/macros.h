@@ -10,25 +10,25 @@
 // +,-,*など標準的なoperatorを標準的な方法で定義するためのマクロ
 // enumで定義されている型に対して用いる。Stockfishのアイデア。
 
-#define ENABLE_BASE_OPERATORS_ON(T)                                             \
-  inline T operator+(const T d1, const T d2) { return T(int(d1) + int(d2)); }   \
-  inline T operator-(const T d1, const T d2) { return T(int(d1) - int(d2)); }   \
-  inline T operator*(const int i, const T d) { return T(i * int(d)); }          \
-  inline T operator*(const T d, const int i) { return T(int(d) * i); }          \
-  inline T operator-(const T d) { return T(-int(d)); }                          \
-  inline T& operator+=(T& d1, const T d2) { return d1 = d1 + d2; }              \
-  inline T& operator-=(T& d1, const T d2) { return d1 = d1 - d2; }              \
-  inline T& operator*=(T& d, const int i) { return d = T(int(d) * i); }         \
+#define ENABLE_BASE_OPERATORS_ON(T)                                               \
+	inline T operator+(const T d1, const T d2) { return T(int(d1) + int(d2)); }   \
+	inline T operator-(const T d1, const T d2) { return T(int(d1) - int(d2)); }   \
+	inline T operator-(const T d) { return T(-int(d)); }                          \
+	inline T& operator+=(T& d1, const T d2) { return d1 = d1 + d2; }              \
+	inline T& operator-=(T& d1, const T d2) { return d1 = d1 - d2; }              \
 
-#define ENABLE_FULL_OPERATORS_ON(T)                                             \
-ENABLE_BASE_OPERATORS_ON(T)                                                     \
-inline T& operator++(T& d) { return d = T(int(d) + 1); }                        \
-inline T& operator--(T& d) { return d = T(int(d) - 1); }                        \
-inline T operator++(T& d,int) { T prev = d; d = T(int(d) + 1); return prev; }   \
-inline T operator--(T& d,int) { T prev = d; d = T(int(d) - 1); return prev; }   \
-inline T operator/(T d, int i) { return T(int(d) / i); }                        \
-inline int operator/(T d1, T d2) { return int(d1) / int(d2); }                  \
-inline T& operator/=(T& d, int i) { return d = T(int(d) / i); }
+#define ENABLE_FULL_OPERATORS_ON(T)                                               \
+	ENABLE_BASE_OPERATORS_ON(T)                                                   \
+	inline T operator*(const int i, const T d) { return T(i * int(d)); }          \
+	inline T operator*(const T d, const int i) { return T(int(d) * i); }          \
+	inline T& operator*=(T& d, const int i) { return d = T(int(d) * i); }         \
+	inline T& operator++(T& d) { return d = T(int(d) + 1); }                      \
+	inline T& operator--(T& d) { return d = T(int(d) - 1); }                      \
+	inline T operator++(T& d,int) { T prev = d; d = T(int(d) + 1); return prev; } \
+	inline T operator--(T& d,int) { T prev = d; d = T(int(d) - 1); return prev; } \
+	inline T operator/(T d, int i) { return T(int(d) / i); }                      \
+	inline int operator/(T d1, T d2) { return int(d1) / int(d2); }                \
+	inline T& operator/=(T& d, int i) { return d = T(int(d) / i); }
 
 ENABLE_FULL_OPERATORS_ON(Color)
 ENABLE_FULL_OPERATORS_ON(File)
@@ -73,8 +73,8 @@ ENABLE_BIT_OPERATORS_ON(HandKind)
 // enumに対してrange forで回せるようにするためのhack(速度低下があるかも知れないので速度の要求されるところでは使わないこと)
 #define ENABLE_RANGE_OPERATORS_ON(X,ZERO,NB)     \
   inline X operator*(X x) { return x; }          \
-  inline X begin(X x) { return ZERO; }           \
-  inline X end(X x) { return NB; }
+  inline X begin(X) { return ZERO; }             \
+  inline X end(X) { return NB; }
 
 ENABLE_RANGE_OPERATORS_ON(Square, SQ_ZERO, SQ_NB)
 ENABLE_RANGE_OPERATORS_ON(Color, COLOR_ZERO, COLOR_NB)
@@ -103,6 +103,7 @@ ENABLE_RANGE_OPERATORS_ON(Piece, NO_PIECE, PIECE_NB)
 
 // Bitboardのそれぞれの升に対して処理を行なうためのマクロ。
 // p[0]側とp[1]側との両方で同じコードが生成されるので生成されるコードサイズに注意。
+// BB_自体は破壊されない。(このあとemptyであることを仮定しているなら間違い)
 
 #define FOREACH_BB(BB_, SQ_, Statement_) \
   do {                          \

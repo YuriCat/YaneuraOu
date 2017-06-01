@@ -25,8 +25,13 @@ extern void user_test(Position& pos, std::istringstream& is);
 extern void test_cmd(Position& pos, istringstream& is);
 extern void perft(Position& pos, istringstream& is);
 extern void generate_moves_cmd(Position& pos);
-extern void bench_cmd(Position& pos, istringstream& is);
+#ifdef MATE_ENGINE
+extern void test_mate_engine_cmd(Position& pos, istringstream& is);
 #endif
+#endif
+
+// "bench"コマンドは、"test"コマンド群とは別。常に呼び出せるようにしてある。
+extern void bench_cmd(Position& pos, istringstream& is);
 
 // 定跡を作るコマンド
 #ifdef ENABLE_MAKEBOOK_CMD
@@ -98,14 +103,23 @@ namespace USI
 	  // スコアを歩の価値を100として正規化して出力する。
 	std::string score_to_usi(Value v)
 	{
+		ASSERT_LV3(-VALUE_INFINITE < v && v < VALUE_INFINITE);
+
 		std::stringstream s;
 
 		// 置換表上、値が確定していないことがある。
 		if (v == VALUE_NONE)
 			s << "none";
-
 		else if (abs(v) < VALUE_MATE_IN_MAX_PLY)
 			s << "cp " << v * 100 / int(Eval::PawnValue);
+		else if (v == -VALUE_MATE)
+			// USIプロトコルでは、手数がわからないときには "mate -"と出力するらしい。
+			// 手数がわからないというか詰んでいるのだが…。これを出力する方法がUSIプロトコルで定められていない。
+			// ここでは"-0"を出力しておく。
+			// 将棋所では検討モードは、go infiniteで呼び出されて、このときbestmoveを返さないから
+			// 結局、このときのスコアは画面に表示されない。
+			// ShogiGUIだと、これできちんと"+詰"と出力されるようである。
+			s << "mate -0";
 		else
 			s << "mate " << (v > 0 ? VALUE_MATE - v - 1 : -VALUE_MATE - v + 1);
 
@@ -127,7 +141,7 @@ namespace USI
 		for (size_t i = 0; i < multiPV; ++i)
 		{
 			// この指し手のpvの更新が終わっているのか
-			bool updated = (i <= PVIdx);
+			bool updated = (i <= PVIdx && rootMoves[i].score != -VALUE_INFINITE);
 
 			if (iteration_depth == ONE_PLY && !updated)
 				continue;
@@ -164,8 +178,16 @@ namespace USI
 			ss << " time " << elapsed
 				<< " pv";
 
-#ifdef USE_TT_PV
-			// 置換表からPVをかき集めてくるモード
+
+			// PV配列からPVを出力する。
+			auto out_array_pv = [&]()
+			{
+				for (Move m : rootMoves[i].pv)
+					ss << " " << m;
+			};
+
+			// 置換表からPVをかき集めてきてPVを出力する。
+			auto out_tt_pv = [&]()
 			{
 				auto pos_ = const_cast<Position*>(&pos);
 				Move moves[MAX_PLY + 1];
@@ -182,22 +204,39 @@ namespace USI
 					if (found)
 					{
 						// 置換表にはpsudo_legalではない指し手が含まれるのでそれを弾く。
+						// legal()の判定もここでしておく。
 						Move m = pos.move16_to_move(tte->move());
-						if (pos.pseudo_legal(m))
+						if (pos.pseudo_legal(m) && pos.legal(m))
 							moves[ply] = m;
 						else
 							moves[ply] = MOVE_NONE;
-					} else
+					}
+					else
 						moves[ply] = MOVE_NONE;
 				}
 				while (ply > 0)
 					pos_->undo_move(moves[--ply]);
-			}
-#else
-			// rootMovesが自らPVを持っているモード
+			};
 
-			for (Move m : rootMoves[i].pv)
-				ss << " " << m;
+#if !defined (USE_TT_PV)
+			// 検討用のPVを出力するモードなら、置換表からPVをかき集める。
+			// (そうしないとMultiPV時にPVが欠損することがあるようだ)
+			// fail-highのときにもPVを更新しているのが問題ではなさそう。
+			// Stockfish側の何らかのバグかも。
+			if (Search::Limits.consideration_mode)
+				out_tt_pv();
+			else
+				out_array_pv();
+
+#else
+			// 置換表からPVを出力するモード。
+			// ただし、probe()するとTTEntryのgenerationが変わるので探索に影響する。
+			// benchコマンド時、これはまずいのでbenchコマンド時にはこのモードをオフにする。
+			if (Search::Limits.bench)
+				out_array_pv();
+			else
+				out_tt_pv();
+
 #endif
 		}
 
@@ -226,7 +265,7 @@ namespace USI
 		// 並列探索するときのスレッド数
 		// CPUの搭載コア数をデフォルトとすべきかも知れないが余計なお世話のような気もするのでしていない。
 
-		o["Threads"] << Option(4, 1, 128, [](auto& o) { Threads.read_usi_options(); });
+		o["Threads"] << Option(4, 1, 512, [](const Option& ) { Threads.read_usi_options(); });
 
 		// USIプロトコルでは、"USI_Hash"なのだが、
 		// 置換表サイズを変更しての自己対戦などをさせたいので、
@@ -234,13 +273,13 @@ namespace USI
 		// ゆえにGUIでの対局設定は無視して、思考エンジンの設定ダイアログのところで
 		// 個別設定が出来るようにする。
 
-		o["Hash"] << Option(16, 1, MaxHashMB, [](auto&o) { TT.resize(o); });
+		o["Hash"] << Option(16, 1, MaxHashMB, [](const Option&o) { TT.resize(o); });
 
 		// その局面での上位N個の候補手を調べる機能
 		o["MultiPV"] << Option(1, 1, 800);
 
 		// cin/coutの入出力をファイルにリダイレクトする
-		o["WriteDebugLog"] << Option(false, [](auto& o) { start_logger(o); });
+		o["WriteDebugLog"] << Option(false, [](const Option& o) { start_logger(o); });
 
 		// ネットワークの平均遅延時間[ms]
 		// この時間だけ早めに指せばだいたい間に合う。
@@ -255,8 +294,14 @@ namespace USI
 		// 最小思考時間[ms]
 		o["MinimumThinkingTime"] << Option(2000, 1000, 100000);
 
-		// 引き分けまでの最大手数。256手ルールのときに256。0なら無制限。
-		o["MaxMovesToDraw"] << Option(0, 0, 100000, [](const Option& o) { max_game_ply = (o == 0) ? INT_MAX : (int)o; });
+		// 切れ負けのときの思考時間を調整する。序盤重視率。百分率になっている。
+		// 例えば200を指定すると本来の最適時間の200%(2倍)思考するようになる。
+		// 対人のときに短めに設定して強制的に早指しにすることが出来る。
+		o["SlowMover"] << Option(100, 1, 1000);
+
+		// 引き分けまでの最大手数。256手ルールのときに256を設定すると良い。
+		// 0なら無制限。(桁あふれすると良くないので内部的には100000として扱う)
+		o["MaxMovesToDraw"] << Option(0, 0, 100000, [](const Option& o) { max_game_ply = (o == 0) ? 100000 : (int)o; });
 
 		// 引き分けを受け入れるスコア
 		// 歩を100とする。例えば、この値を100にすると引き分けの局面は評価値が -100とみなされる。
@@ -264,12 +309,12 @@ namespace USI
 
 #ifdef USE_ENTERING_KING_WIN
 		// 入玉ルール
-		o["EnteringKingRule"] << Option(ekr_rules, ekr_rules[EKR_27_POINT], [](auto& o) { set_entering_king_rule(o); });
+		o["EnteringKingRule"] << Option(ekr_rules, ekr_rules[EKR_27_POINT], [](const Option& o) { set_entering_king_rule(o); });
 #endif
 
 		o["EvalDir"] << Option("eval");
 
-#if defined(EVAL_KPPT) && defined (USE_SHARED_MEMORY_IN_EVAL) && defined(_MSC_VER)
+#if defined(EVAL_KPPT) && defined (USE_SHARED_MEMORY_IN_EVAL) && defined(_WIN32)
 		// 評価関数パラメーターを共有するか
 		o["EvalShare"] << Option(true);
 #endif
@@ -339,9 +384,10 @@ namespace USI
 // USI関係のコマンド処理
 // --------------------
 
-s32 eval_sum;
+u64 eval_sum;
 
 // is_ready_cmd()を外部から呼び出せるようにしておく。(benchコマンドなどから呼び出したいため)
+// 局面は初期化されないので注意。
 void is_ready()
 {
 	static bool first = true;
@@ -363,9 +409,15 @@ void is_ready()
 
 	}
 
-	Search::clear();
+	// isreadyに対してはreadyokを返すまで次のコマンドが来ないことは約束されているので
+	// このタイミングで各種変数の初期化もしておく。
 
+	TT.resize(Options["Hash"]);
+	Search::clear();
 	Time.availableNodes = 0;
+
+	ponder_mode = false;
+	Search::Signals.stop = false;
 }
 
 // isreadyコマンド処理部
@@ -382,7 +434,6 @@ void is_ready_cmd(Position& pos)
 	// evalの値を返せるようにこのタイミングで平手局面で初期化してしまう。
 	pos.set(SFEN_HIRATE);
 
-	ponder_mode = false;
 	sync_cout << "readyok" << sync_endl;
 }
 
@@ -645,7 +696,7 @@ void USI::loop(int argc, char* argv[])
 
 		// 起動時いきなりこれが飛んでくるので速攻応答しないとタイムアウトになる。
 		else if (token == "usi")
-			sync_cout << "id name " << engine_info() << Options << "usiok" << sync_endl;
+			sync_cout << engine_info() << Options << "usiok" << sync_endl;
 
 		// オプションを設定する
 		else if (token == "setoption") setoption_cmd(is);
@@ -690,6 +741,9 @@ void USI::loop(int argc, char* argv[])
 		else if (token == "mate1") cout << pos.mate1ply() << endl;
 #endif
 
+		// ベンチコマンド(これは常に使える)
+		else if (token == "bench") bench_cmd(pos, is);
+
 #ifdef ENABLE_TEST_CMD
 		// 指し手生成のテスト
 		else if (token == "s") generate_moves_cmd(pos);
@@ -700,8 +754,9 @@ void USI::loop(int argc, char* argv[])
 		// テストコマンド
 		else if (token == "test") test_cmd(pos, is);
 
-		// ベンチコマンド
-		else if (token == "bench") bench_cmd(pos, is);
+#ifdef MATE_ENGINE
+		else if (token == "test_mate_engine") test_mate_engine_cmd(pos, is);
+#endif
 #endif
 
 #ifdef ENABLE_MAKEBOOK_CMD

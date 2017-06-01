@@ -1,7 +1,7 @@
 ﻿#ifndef _MOVE_PICKER_2016Q2_H_
 #define _MOVE_PICKER_2016Q2_H_
 
-#include "../shogi.h"
+#include "../../shogi.h"
 
 // -----------------------
 //   MovePicker
@@ -9,7 +9,7 @@
 
 #ifdef USE_MOVE_PICKER_2016Q2
 
-#include "../search.h"
+#include "../../search.h"
 
 // -----------------------
 //  history , counter move
@@ -110,7 +110,7 @@ private:
 typedef Stats<Move            > MoveStats;
 typedef Stats<Value, false    > HistoryStats;
 typedef Stats<Value, true     > CounterMoveStats;
-typedef Stats<CounterMoveStats> CounterMoveHistoryStats;
+typedef Stats<CounterMoveStats> CounterMoveHistoryStat;
 
 
 enum Stages : int;
