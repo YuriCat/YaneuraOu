@@ -1,5 +1,7 @@
 ﻿#include "learning_tools.h"
 
+#if defined (EVAL_LEARN)
+
 namespace EvalLearningTools
 {
 
@@ -262,3 +264,5 @@ namespace EvalLearningTools
 		//std::cout << "done." << std::endl;
 	}
 }
+
+#endif
