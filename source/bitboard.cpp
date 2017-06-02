@@ -61,7 +61,7 @@ Bitboard BishopStepEffectBB[SQ_NB_PLUS1];
 Bitboard RookStepEffectBB[SQ_NB_PLUS1];
 
 // 角の利き
-Bitboard BishopEffect[2][1856+1];
+Bitboard BishopEffect[2][68+1];
 Bitboard BishopEffectMask[2][SQ_NB_PLUS1];
 int BishopEffectIndex[2][SQ_NB_PLUS1];
 
@@ -91,7 +91,7 @@ u8 Slide[SQ_NB_PLUS1] = {
     0 , // SQ_NB用
 };
 
-Bitboard BetweenBB[68];
+Bitboard BetweenBB[89];
 u16 BetweenIndex[SQ_NB_PLUS1][SQ_NB_PLUS1];
 
 // SquareからSquareWithWallへの変換テーブル
@@ -443,7 +443,7 @@ void Bitboards::init()
 				}
 			}
 
-		ASSERT_LV1(between_index == 68);
+        ASSERT_LV1(between_index == 89);
 
 		// 対称性を考慮して、さらにシュリンクする。
 		for (auto s1 : SQ)

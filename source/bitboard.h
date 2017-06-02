@@ -170,7 +170,7 @@ extern Bitboard PAWN_DROP_MASK_BB[0x20]; // pには1～5筋のデータが入っ
 // 2升に挟まれている升を返すためのテーブル(その2升は含まない)
 // この配列には直接アクセスせずにbetween_bb()を使うこと。
 // 配列サイズが大きくてcache汚染がひどいのでシュリンクしてある。
-extern Bitboard BetweenBB[68];
+extern Bitboard BetweenBB[89];
 extern u16 BetweenIndex[SQ_NB_PLUS1][SQ_NB_PLUS1];
 
 // 2升に挟まれている升を表すBitboardを返す。sq1とsq2が縦横斜めの関係にないときはZERO_BBが返る。
@@ -242,7 +242,7 @@ extern Bitboard BishopStepEffectBB[SQ_NB_PLUS1];
 extern Bitboard RookStepEffectBB[SQ_NB_PLUS1];
 
 // --- 角の利き
-extern Bitboard BishopEffect[2][1856+1];
+extern Bitboard BishopEffect[2][68+1];
 extern Bitboard BishopEffectMask[2][SQ_NB_PLUS1];
 extern int		BishopEffectIndex[2][SQ_NB_PLUS1];
 
@@ -405,7 +405,7 @@ Bitboard effects_from(Piece pc, Square sq, const Bitboard& occ);
 
 // 2bit以上あるかどうかを判定する。縦横斜め方向に並んだ駒が2枚以上であるかを判定する。この関係にないと駄目。
 // この関係にある場合、Bitboard::merge()によって被覆しないことがBitboardのレイアウトから保証されている。
-inline bool more_than_one(const Bitboard& bb) { BLSR(bb.p); }
+inline bool more_than_one(const Bitboard& bb) { return POPCNT32(bb.p) > 1; }
 
 
 #endif // #ifndef _BITBOARD_H_
