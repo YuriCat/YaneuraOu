@@ -661,7 +661,7 @@ namespace YaneuraOu2017Early
 			// 現在このスレッドで探索している指し手を保存しておく。
 			ss->currentMove = move;
 
-			pos.do_move(move, st, givesCheck);
+            pos.do_move(move, st, givesCheck); //TODO: std::cerr << move << std::endl;
 			value = givesCheck ? -qsearch<NT, true >(pos, ss + 1, -beta, -alpha, depth - ONE_PLY)
 				               : -qsearch<NT, false>(pos, ss + 1, -beta, -alpha, depth - ONE_PLY);
 
@@ -2461,7 +2461,7 @@ void Thread::search()
 						// MultiPVのときは最後の候補手を求めた直後とする。
 						// ただし、時間が3秒以上経過してからは、MultiPVのそれぞれの指し手ごと。
 						((PVIdx + 1 == multiPV || Time.elapsed() > 3000)
-						 && (rootDepth < 3 || lastInfoTime + pv_interval <= Time.elapsed() )))
+						 && (rootDepth < 3 || 1/*lastInfoTime + pv_interval <= Time.elapsed()*/ )))
 				{
 					// 検討モードのときは、stopのときには、PVを出力しないことにする。
 					if (!(Signals.stop && Limits.consideration_mode))

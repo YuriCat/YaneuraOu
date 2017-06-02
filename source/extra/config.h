@@ -1,4 +1,4 @@
-﻿#ifndef _CONFIG_H_
+#ifndef _CONFIG_H_
 #define _CONFIG_H_
 
 // --------------------
@@ -52,7 +52,7 @@
 
 // --- デバッグ時の標準出力への局面表示などに日本語文字列を用いる。
 
-#define PRETTY_JP
+//#define PRETTY_JP
 
 //
 // 以下、デフォルトではdefineしていないので、必要に応じてdefineすること。
@@ -482,6 +482,7 @@ extern GlobalOptions_ GlobalOptions;
 #include <climits>  // INT_MAX
 #include <cstddef>  // offsetof
 #include <array>
+#include <functional>
 
 
 // --------------------

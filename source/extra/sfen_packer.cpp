@@ -184,9 +184,9 @@ struct SfenPacker
   {
     stream.set_data(data);
 
-    // 盤上の81升
-    Piece board[81];
-    memset(board, 0, sizeof(Piece)*81);
+    // 盤上の SQ_NB 升
+    Piece board[SQ_NB];
+    memset(board, 0, sizeof(Piece)*SQ_NB);
 
     // 手番
     Color turn = (Color)stream.read_one_bit();
@@ -462,14 +462,14 @@ void Position::set_from_packed_sfen(const PackedSfen& sfen)
 }
 
 // 盤面と手駒、手番を与えて、そのsfenを返す。
-std::string Position::sfen_from_rawdata(Piece board[81], Hand hands[2], Color turn, int gamePly_)
+std::string Position::sfen_from_rawdata(Piece board[SQ_NB], Hand hands[COLOR_NB], Color turn, int gamePly_)
 {
   // 内部的な構造体にコピーして、sfen()を呼べば、変換過程がそこにしか依存していないならば
   // これで正常に変換されるのでは…。
   Position pos;
 
-  memcpy(pos.board, board, sizeof(Piece) * 81);
-  memcpy(pos.hand, hands, sizeof(Hand) * 2);
+  memcpy(pos.board, board, sizeof(Piece) * SQ_NB);
+  memcpy(pos.hand, hands, sizeof(Hand) * COLOR_NB);
   pos.sideToMove = turn;
   pos.gamePly = gamePly_;
 

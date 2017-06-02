@@ -309,7 +309,7 @@ private:
 // デフォルトでLSB32()を呼ぶようにしてuint64_tのときだけ64bit版を用意しておく。
 
 template <typename T> FORCE_INLINE int pop_lsb(T& b) {  int index = LSB32(b);  b = T(BLSR(b)); return index; }
-FORCE_INLINE int pop_lsb(u64 & b) { int index = LSB64(b);  b = BLSR(b); return index; }
+FORCE_INLINE int pop_lsb(u64 & b) { int index = LSB64(b); b = BLSR(b); return index; }
 
 
 #endif

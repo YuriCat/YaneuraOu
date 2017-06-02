@@ -40,7 +40,7 @@ Bitboard InFrontBB[COLOR_NB][RANK_NB] = {
 };
 
 // 敵陣を表現するBitboard。
-Bitboard EnemyField[COLOR_NB] = { RANK1_BB | RANK2_BB | RANK3_BB , RANK7_BB | RANK8_BB | RANK9_BB };
+Bitboard EnemyField[COLOR_NB] = { RANK1_BB , RANK5_BB };
 
 
 // ----- Bitboard tables
@@ -66,8 +66,8 @@ Bitboard BishopEffectMask[2][SQ_NB_PLUS1];
 int BishopEffectIndex[2][SQ_NB_PLUS1];
 
 // 飛車の縦、横の利き
-u64      RookFileEffect[RANK_NB + 1][128];
-Bitboard RookRankEffect[FILE_NB + 1][128];
+Bitboard RookFileEffect[RANK_NB + 1][1 << (5 - 2)];
+Bitboard RookRankEffect[FILE_NB + 1][1 << (5 - 2)];
 
 // 歩が打てる筋を得るためのBitboard
 // bit0 = 5筋に歩が打てないなら1 , bit1 = 4筋に… , bit4 = 1筋に歩が打てないなら1
@@ -91,7 +91,7 @@ u8 Slide[SQ_NB_PLUS1] = {
     0 , // SQ_NB用
 };
 
-Bitboard BetweenBB[785];
+Bitboard BetweenBB[68];
 u16 BetweenIndex[SQ_NB_PLUS1][SQ_NB_PLUS1];
 
 // SquareからSquareWithWallへの変換テーブル
@@ -274,7 +274,7 @@ void Bitboards::init()
 		BishopEffectIndex[n][SQ_NB] = index;
 
 		// 何番まで使ったか出力してみる。(確保する配列をこのサイズに収めたいので)
-		 cout << index << endl;
+		// cout << index << endl;
 	}
 
   
@@ -443,7 +443,7 @@ void Bitboards::init()
 				}
 			}
 
-		ASSERT_LV1(between_index == 785);
+		ASSERT_LV1(between_index == 68);
 
 		// 対称性を考慮して、さらにシュリンクする。
 		for (auto s1 : SQ)

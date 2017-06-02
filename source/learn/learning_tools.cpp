@@ -154,8 +154,12 @@ namespace EvalLearningTools
 					 // 手駒に関してはmirrorなど存在しない。
 					if (p < fe_hand_end)
 						continue;
+                    
+                    // 5五将棋の盤面に収まっていないものは省く
+                    if (sq >= SQ_NB)
+                        continue;
 
-					BonaPiece r1 = (BonaPiece)(Mir(sq) + t[i]);
+                    BonaPiece r1 = (BonaPiece)(Mir(sq) + t[i]);
 					mir_piece_[p] = r1;
 					mir_piece_[r1] = p;
 
@@ -175,7 +179,8 @@ namespace EvalLearningTools
 				)
 			{
 				// 未初期化のままになっている。上のテーブルの初期化コードがおかしい。
-				ASSERT(false);
+                // -> 5五将棋用にOKとする
+				// ASSERT(false);
 			}
 
 #if 0

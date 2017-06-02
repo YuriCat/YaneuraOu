@@ -1,4 +1,4 @@
-﻿#ifndef _MACROS_H_
+#ifndef _MACROS_H_
 #define _MACROS_H_
 
 // --------------------
@@ -108,7 +108,7 @@ ENABLE_RANGE_OPERATORS_ON(Piece, NO_PIECE, PIECE_NB)
 #define FOREACH_BB(BB_, SQ_, Statement_) \
   do {                          \
     while (BB_.p) {          \
-      SQ_ = BB_.pop_from_p0();  \
+      SQ_ = BB_.pop();  \
       Statement_;               \
     }                           \
   } while (false)

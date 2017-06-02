@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 
 #include "shogi.h"
 #include "position.h"
@@ -120,7 +120,7 @@ template <Piece Pt, Color Us, bool All> struct make_move_target {
 				if (canPromote(Us, to))
 				{
 					mlist++->move = make_move_promote(from, to) + OurProPt(Us, Pt);
-					if (All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_9))
+					if (All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_5))
 						mlist++->move = make_move(from, to) + OurPt(Us, Pt);
 				}
 				else

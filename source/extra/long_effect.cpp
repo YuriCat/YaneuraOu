@@ -108,7 +108,7 @@ namespace Effect8
 
     // sqがSQ_32に来るように正規化する。
     auto t = uint32_t((sq < SQ_32) ? (b.p << int(SQ_32 - sq)) :
-      ((b.p >> int(sq - SQ_32)))); // p[1]のSQ_92の左の升は、p[0]のSQ_32相当。
+      ((b.p >> int(sq - SQ_32))));
 
                                                                               // PEXTで8近傍の状態を回収。
     return (Directions)PEXT32(t, 0b111001010011100000);
@@ -166,7 +166,7 @@ namespace Effect24
   {
     // sqがSQ_33に来るように正規化する。
     auto t = (sq < SQ_33) ? (b.p << int(SQ_33 - sq)) :
-      ((b.p >> int(sq - SQ_33))); // p[1]のSQ_93の左は、p[0]のSQ_33
+      ((b.p >> int(sq - SQ_33)));
 
     // PEXTで24近傍の状態を回収。
     return (Directions)PEXT64(t, 0b1111111111110111111111111);

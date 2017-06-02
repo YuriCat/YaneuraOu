@@ -957,7 +957,6 @@ bool Position::pseudo_legal_s(const Move m) const {
 
 		}
 	}
->>>>>>> master
 
 	return true;
 }

@@ -1,4 +1,4 @@
-﻿#ifndef _BITBOARD_H_
+#ifndef _BITBOARD_H_
 #define _BITBOARD_H_
 
 #include "shogi.h"
@@ -162,7 +162,7 @@ inline const Bitboard rank1_n_bb(Color US, const Rank r) { ASSERT_LV2(is_ok(r));
 
 // 敵陣を表現するBitboard。
 extern Bitboard EnemyField[COLOR_NB];
-inline const Bitboard enemy_field(Color US) { return EnemyField[Us]; }
+inline const Bitboard enemy_field(Color Us) { return EnemyField[Us]; }
 
 // 歩が打てる筋を得るためのBitboard mask
 extern Bitboard PAWN_DROP_MASK_BB[0x20]; // pには1～5筋のデータが入っている。
@@ -170,7 +170,7 @@ extern Bitboard PAWN_DROP_MASK_BB[0x20]; // pには1～5筋のデータが入っ
 // 2升に挟まれている升を返すためのテーブル(その2升は含まない)
 // この配列には直接アクセスせずにbetween_bb()を使うこと。
 // 配列サイズが大きくてcache汚染がひどいのでシュリンクしてある。
-extern Bitboard BetweenBB[785];
+extern Bitboard BetweenBB[68];
 extern u16 BetweenIndex[SQ_NB_PLUS1][SQ_NB_PLUS1];
 
 // 2升に挟まれている升を表すBitboardを返す。sq1とsq2が縦横斜めの関係にないときはZERO_BBが返る。
@@ -257,7 +257,7 @@ extern Bitboard RookRankEffect[FILE_NB + 1][1 << (5 - 2)];
 
 // Haswellのpext()を呼び出す。occupied = occupied bitboard , mask = 利きの算出に絡む升が1のbitboard
 // この関数で戻ってきた値をもとに利きテーブルを参照して、遠方駒の利きを得る。
-inline uint64_t occupiedToIndex(const Bitboard& occupied, const Bitboard& mask) { return PEXT64(occupied.merge(), mask.merge()); }
+inline uint64_t occupiedToIndex(const Bitboard& occupied, const Bitboard& mask) { return PEXT32(occupied.p, mask.p); }
 
 // --------------------
 //   大駒・小駒の利き
@@ -405,7 +405,7 @@ Bitboard effects_from(Piece pc, Square sq, const Bitboard& occ);
 
 // 2bit以上あるかどうかを判定する。縦横斜め方向に並んだ駒が2枚以上であるかを判定する。この関係にないと駄目。
 // この関係にある場合、Bitboard::merge()によって被覆しないことがBitboardのレイアウトから保証されている。
-inline bool more_than_one(const Bitboard& bb) { pop_lsb(bb); return bb; }
+inline bool more_than_one(const Bitboard& bb) { BLSR(bb.p); }
 
 
 #endif // #ifndef _BITBOARD_H_
