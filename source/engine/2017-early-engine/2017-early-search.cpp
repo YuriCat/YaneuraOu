@@ -2654,8 +2654,14 @@ void MainThread::think()
 		// 評価値が - 100とみなされる。(互角と思っている局面であるなら引き分けを選ばずに他の指し手を選ぶ)
 
 		int contempt = Options["Contempt"] * PawnValue / 100;
-		drawValueTable[REPETITION_DRAW][ us] = VALUE_ZERO - Value(contempt);
-		drawValueTable[REPETITION_DRAW][~us] = VALUE_ZERO + Value(contempt);
+        if (contempt)
+        {
+            drawValueTable[REPETITION_DRAW][ us] = VALUE_ZERO - Value(contempt);
+            drawValueTable[REPETITION_DRAW][~us] = VALUE_ZERO + Value(contempt);
+        } else {
+            drawValueTable[REPETITION_DRAW][BLACK] = -VALUE_MATE;
+            drawValueTable[REPETITION_DRAW][WHITE] = VALUE_MATE;
+        }
 
 		// --- 今回の思考時間の設定。
 
