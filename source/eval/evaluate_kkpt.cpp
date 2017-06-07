@@ -40,6 +40,8 @@ namespace Eval
 
 #endif
 
+	void init() {}
+
 	// 評価関数ファイルを読み込む
 	void load_eval_impl()
 	{
@@ -144,10 +146,6 @@ namespace Eval
 				{
 					cout << p1 << "," << p2 << " = " << (int)kpp[SQ_88][p1][p2][1] << endl;
 				}
-#endif
-
-#ifdef EVAL_LEARN
-			eval_learn_init();
 #endif
 
 		}

@@ -6,6 +6,7 @@
 #if defined(ENABLE_TEST_CMD)
 
 #include "all.h"
+#include "../eval/evaluate_io.h"
 #include <unordered_set>
 
 // 評価関数ファイルを読み込む。
@@ -1234,7 +1235,7 @@ void test_search(Position& pos, istringstream& is)
 }
 #endif
 
-#ifdef EVAL_KPPT
+#if defined (EVAL_KPPT)
 //
 // eval merge
 //  KKPT評価関数の合成用
@@ -1385,6 +1386,73 @@ void eval_merge(istringstream& is)
 
 	cout << "..done" << endl;
 }
+
+// 評価関数の変換
+void eval_convert(istringstream& is)
+{
+	// "test evalconvert kppt16 EVALDIR1 kppt32 EVALDIR2"
+	// のようにするとapery(WCSC27)の形式で格納されているEVALDIR1/の評価関数が、変換されて、
+	// やねうら王2017Early/apery(WCSC26)の形式でEVALDIR2/に格納される。
+
+	// "test evalconvert kppt32 EVALDIR1 kppt16 EVALDIR2"
+	// とすると、逆に、やねうら王2017Early/Apery(WCSC26)の形式で格納されているEVALDIR1/の評価関数が、変換されて
+	// Apery(WCSC27)の形式でEVALDIR2/に格納される。
+
+	std::string input_format, input_dir, output_format, output_dir;
+	is >> input_format >> input_dir >> output_format >> output_dir;
+
+	// EvalIOを使うとマジで簡単に変換できる。
+	auto get_info = [](std::string path , std::string format)
+	{
+		auto make_name = [&](std::string filename) { return path_combine(path, filename); };
+		if (format == "kppt32")
+			return EvalIO::EvalInfo::build_kppt32(make_name(KK_BIN), make_name(KKP_BIN), make_name(KPP_BIN));
+		else if (format == "kppt16")
+			return EvalIO::EvalInfo::build_kppt16(make_name(KK_BIN), make_name(KKP_BIN), make_name(KPP_BIN));
+
+#if defined (USE_EVAL_MAKE_LIST_FUNCTION)
+		// 旧評価関数を実験中の評価関数に変換する裏コマンド
+		// "test evalconvert kppt32 EVALDIR1 now EVALDIR2"のように使う。
+		else if (format == "now")
+		{
+			auto build = EvalIO::EvalInfo::build_kppt32(make_name(KK_BIN), make_name(KKP_BIN), make_name(KPP_BIN));
+			build.fe_end = Eval::fe_end;
+			return build;
+		}
+#endif
+		else
+			// とりあえずダミーで何か返す。
+			return EvalIO::EvalInfo::build_kppt32(make_name(KK_BIN), make_name(KKP_BIN), make_name(KPP_BIN));
+	};
+
+	auto is_valid_format = [](std::string format)
+	{
+		bool result =  (format == "kppt32" || format == "kppt16" || format == "now");
+		if (!result)
+			cout << "Error! Unknow format , format = " << format << endl;
+		return result;
+	};
+	if (!is_valid_format(input_format) || !is_valid_format(output_format))
+		return;
+
+	// 出力先のフォルダ、なければ掘る。
+	MKDIR(output_dir);
+
+	auto input = get_info(input_dir, input_format);
+	auto output = get_info(output_dir, output_format);
+	std::cout << "converting..";
+#if !defined (USE_EVAL_MAKE_LIST_FUNCTION)
+	EvalIO::eval_convert(input, output, nullptr);
+#else
+	// Eval::eval_mapperを用いて旧形式→新形式への変換を行なう。
+	if (output_format == "now")
+		EvalIO::eval_convert(input, output, &Eval::eval_mapper);
+	else
+		EvalIO::eval_convert(input, output, nullptr);
+#endif
+	std::cout << "..done." << std::endl;
+}
+
 #endif
 
 #ifdef EVAL_LEARN
@@ -1487,6 +1555,75 @@ void dump_sfen(Position& pos, istringstream& is)
 }
 #endif
 
+#ifdef USE_KIF_CONVERT_TOOLS
+void test_kif_convert_tools(Position& pos, istringstream& is)
+{
+	is_ready();
+
+	std::string token = "";
+	is >> token;
+
+	bool sfen = false, csa = false, csa1 = false, kif = false, kif2 = false, all = (token == "");
+
+	while(true)
+	{
+		token = "";
+		is >> token;
+		if (token == "")
+			break;
+		if (token == "sfen")
+			sfen = true;
+		if (token == "csa")
+			csa = true;
+		else if (token == "csa1")
+			csa1 = true;
+		else if (token == "kif")
+			kif = true;
+		else if (token == "kif2")
+			kif2 = true;
+	}
+
+	std::cout << "position: " << pos.sfen() << std::endl;
+
+	if (all || sfen)
+	{
+		std::cout << "sfen:";
+		for (auto m : MoveList<LEGAL_ALL>(pos))
+			std::cout << " " << m.move;
+		std::cout << std::endl;
+	}
+	if (all || csa)
+	{
+		std::cout << "csa:";
+		for (auto m : MoveList<LEGAL_ALL>(pos))
+			std::cout << " " << KifConvertTools::to_csa_string(pos, m.move);
+		std::cout << std::endl;
+	}
+	if (all || csa1)
+	{
+		std::cout << "csa1:";
+		for (auto m : MoveList<LEGAL_ALL>(pos))
+			std::cout << " " << KifConvertTools::to_csa1_string(pos, m.move);
+		std::cout << std::endl;
+	}
+	if (all || kif)
+	{
+		std::cout << "kif:";
+		for (auto m : MoveList<LEGAL_ALL>(pos))
+			std::cout << " " << KifConvertTools::to_kif_string(pos, m.move);
+		std::cout << std::endl;
+	}
+	if (all || kif2)
+	{
+		std::cout << "kif2:";
+		for (auto m : MoveList<LEGAL_ALL>(pos))
+			std::cout << " " << KifConvertTools::to_kif2_string(pos, m.move);
+		std::cout << std::endl;
+	}
+
+}
+#endif // #ifdef USE_KIF_CONVERT_TOOLS
+
 void test_cmd(Position& pos, istringstream& is)
 {
 	// 探索をするかも知れないので初期化しておく。
@@ -1511,6 +1648,10 @@ void test_cmd(Position& pos, istringstream& is)
 #endif
 #ifdef EVAL_KPPT
 	else if (param == "evalmerge") eval_merge(is);                   // 評価関数の合成コマンド
+	else if (param == "evalconvert") eval_convert(is);               // 評価関数の変換コマンド
+#endif
+#ifdef USE_KIF_CONVERT_TOOLS
+	else if (param == "kifconvert") test_kif_convert_tools(pos, is); // 現局面からの全合法手を各種形式で出力チェック
 #endif
 	else {
 		cout << "test unit               // UnitTest" << endl;

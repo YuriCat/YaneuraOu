@@ -1,4 +1,4 @@
-﻿#include <algorithm>
+#include <algorithm>
 #include <sstream>
 #include <iostream>
 
@@ -30,13 +30,8 @@ Bitboard FILE_BB[FILE_NB] = { FILE1_BB,FILE2_BB,FILE3_BB,FILE4_BB,FILE5_BB };
 Bitboard RANK_BB[RANK_NB] = { RANK1_BB,RANK2_BB,RANK3_BB,RANK4_BB,RANK5_BB };
 
 Bitboard InFrontBB[COLOR_NB][RANK_NB] = {
-  { ZERO_BB,RANK1_BB, RANK1_BB | RANK2_BB ,
-      RANK1_BB | RANK2_BB | RANK3_BB ,
-      RANK1_BB | RANK2_BB | RANK3_BB | RANK4_BB },
-  { ~RANK1_BB , ~(RANK1_BB | RANK2_BB) ,
-      ~(RANK1_BB | RANK2_BB | RANK3_BB),
-      ~(RANK1_BB | RANK2_BB | RANK3_BB | RANK4_BB),
-      ZERO_BB }
+    { ZERO_BB, RANK1_BB, RANK1_BB | RANK2_BB, ~(RANK5_BB | RANK4_BB), ~RANK5_BB },
+    { ~RANK1_BB, ~(RANK1_BB | RANK2_BB), RANK5_BB | RANK4_BB, RANK5_BB, ZERO_BB }
 };
 
 // 敵陣を表現するBitboard。

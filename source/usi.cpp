@@ -305,7 +305,13 @@ namespace USI
 
 		// 引き分けを受け入れるスコア
 		// 歩を100とする。例えば、この値を100にすると引き分けの局面は評価値が -100とみなされる。
-		o["Contempt"] << Option(0, -30000, 30000);
+
+		// 千日手での引き分けを回避しやすくなるように、デフォルト値を2に変更した。[2017/06/03]
+		// ちなみに、2にしてあるのは、
+		//  int contempt = Options["Contempt"] * PawnValue / 100; でPawnValueが100より小さいので
+		// 1だと切り捨てられてしまうからである。
+
+		o["Contempt"] << Option(2, -30000, 30000);
 
 #ifdef USE_ENTERING_KING_WIN
 		// 入玉ルール
@@ -314,7 +320,7 @@ namespace USI
 
 		o["EvalDir"] << Option("eval");
 
-#if defined(EVAL_KPPT) && defined (USE_SHARED_MEMORY_IN_EVAL) && defined(_WIN32)
+#if defined (USE_SHARED_MEMORY_IN_EVAL) && defined(_WIN32) && (defined(EVAL_KPPT) || defined(EVAL_EXPERIMENTAL))
 		// 評価関数パラメーターを共有するか
 		o["EvalShare"] << Option(true);
 #endif
@@ -398,15 +404,21 @@ void is_ready()
 	{
 		// 評価関数の読み込み
 		Eval::load_eval();
+
+		// チェックサムの計算と保存(その後のメモリ破損のチェックのため)
 		eval_sum = Eval::calc_check_sum();
+
+		// ソフト名の表示
+		Eval::print_softname(eval_sum);
 
 		first = false;
 
 	} else {
 
+		// メモリが破壊されていないかを調べるためにチェックサムを毎回調べる。
+		// 時間が少しもったいない気もするが.. 0.1秒ぐらいのことなので良しとする。
 		if (eval_sum != Eval::calc_check_sum())
 			sync_cout << "Error! : evaluate memory is corrupted" << sync_endl;
-
 	}
 
 	// isreadyに対してはreadyokを返すまで次のコマンドが来ないことは約束されているので

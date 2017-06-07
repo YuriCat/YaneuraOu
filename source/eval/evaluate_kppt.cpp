@@ -11,16 +11,22 @@
 // I pay my respects to his great achievements.
 //
 
-#ifdef EVAL_KPPT
+#if defined (EVAL_KPPT)
 
 #include <fstream>
 #include <iostream>
 #include <unordered_set>
 
 #include "evaluate_kppt.h"
+#include "evaluate_io.h"
 #include "../evaluate.h"
 #include "../position.h"
 #include "../misc.h"
+
+// 実験中の評価関数を読み込む。(現状非公開)
+#if defined (EVAL_EXPERIMENTAL)
+#include "experimental/evaluate_experimental.h"
+#endif
 
 // EvalShareの機能を使うために必要
 #if defined (USE_SHARED_MEMORY_IN_EVAL) && defined(_WIN32)
@@ -64,6 +70,7 @@ namespace Eval
 	// 評価関数ファイルを読み込む
 	void load_eval_impl()
 	{
+//<<<<<<< HEAD
 		// ToDo : Aperyの新形式(Apery WCSC27)の評価関数ファイル、KK/KKPが16bitになっていて、
 		//   評価関数のファイル名が同名であり、ファイルサイズが小さい。このときread()は失敗して
 		//   エラーになるはずだが、このときのエラーをinfo stringで出力しても、読まないユーザーが多い。
@@ -444,7 +451,22 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
             
 #undef Foo
 #undef FooH
+/*=======
+		// EvalIOを利用して評価関数ファイルを読み込む。
+		// ちなみに、inputのところにあるbasic_kppt32()をbasic_kppt16()に変更するとApery(WCSC27)の評価関数ファイルが読み込める。
+		// また、eval_convert()に渡している引数のinputとoutputを入れ替えるとファイルに書き出すことが出来る。EvalIOマジ、っょぃ。
+		auto make_name = [&](std::string filename) { return path_combine((string)Options["EvalDir"], filename); };
+		auto input = EvalIO::EvalInfo::build_kppt32(make_name(KK_BIN), make_name(KKP_BIN), make_name(KPP_BIN));
+		auto output = EvalIO::EvalInfo::build_kppt32((void*)kk, (void*)kkp, (void*)kpp);
 
+		// 評価関数の実験のためにfe_endをKPPT32から変更しているかも知れないので現在のfe_endの値をもとに読み込む。
+		input.fe_end = output.fe_end = Eval::fe_end;
+
+		if (!EvalIO::eval_convert(input, output, nullptr))
+			goto Error;
+>>>>>>> master*/
+
+		//{
 #if 0
 			// kppのp1==p2のところ、値はゼロとなっていること。(参照はするけど学習のときに使いたくないので)
 			{
@@ -528,11 +550,6 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 					cout << p1 << "," << p2 << " = " << (int)kpp[SQ_88][p1][p2][1] << endl;
 				}
 #endif
-
-#ifdef EVAL_LEARN
-			eval_learn_init();
-#endif
-
 		}
 
 		// 読み込みは成功した。
@@ -550,20 +567,26 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 	u64 calc_check_sum()
 	{
 		u64 sum = 0;
-		
-		auto add_sum = [&](u32*ptr , size_t t)
+
+		auto add_sum = [&](u32*ptr, size_t t)
 		{
 			for (size_t i = 0; i < t; ++i)
 				sum += ptr[i];
 		};
-		
-		add_sum(reinterpret_cast<u32*>(kk) , sizeof(kk ) / sizeof(u32));
+
+		add_sum(reinterpret_cast<u32*>(kk), sizeof(kk) / sizeof(u32));
 		add_sum(reinterpret_cast<u32*>(kkp), sizeof(kkp) / sizeof(u32));
 		add_sum(reinterpret_cast<u32*>(kpp), sizeof(kpp) / sizeof(u32));
 
 		return sum;
 	}
 
+	void init()
+	{
+#if defined(EVAL_EXPERIMENTAL)
+		init_eval_experimental();
+#endif
+	}
 
 #if defined (USE_SHARED_MEMORY_IN_EVAL) && defined(_WIN32)
 	// 評価関数の共有を行うための大掛かりな仕組み
@@ -672,28 +695,6 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 	{
 		load_eval_impl();
 #endif
-
-		// 共有メモリを使う/使わないときの共通の処理
-		auto check_sum = calc_check_sum();
-
-		// 評価関数ファイルの正体
-		string softname = "unknown";
-
-		// ソフト名自動判別
-		map<u64, string> list = {
-			{ 0x7171a5469027ebf , "ShinYane(20161010)" } ,
-			{ 0x71fc7fd40c668cc , "Ukamuse(sdt4)" } ,
-
-			{ 0x65cd7c55a9d4cd9 , "elmo(WCSC27)" } ,
-			{ 0x3aa68b055a020a8 , "Yomita(WCSC27)" } ,
-			{ 0x702fb2ee5672156 , "Qhapaq(WCSC27)" } ,
-			{ 0x6c54a1bcb654e37 , "tanuki(WCSC27)" } ,
-		};
-		if (list.count(check_sum))
-			softname = list[check_sum];
-
-		sync_cout << "info string Eval Check Sum = " << std::hex << check_sum << std::dec
-				  << " , Eval File = " << softname << sync_endl;
 	}
 
 	// KP,KPP,KKPのスケール
@@ -705,11 +706,11 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 	// なので、この関数の最適化は頑張らない。
 	Value compute_eval(const Position& pos)
 	{
-#if defined (USE_SHARED_MEMORY_IN_EVAL) && defined(_WIN32)
-		// shared memoryを用いているときには、is_ready()で評価関数を読み込み、
+		// is_ready()で評価関数を読み込み、
 		// 初期化してからしかcompute_eval()を呼び出すことは出来ない。
-		ASSERT_LV1(kk_ != nullptr);
-#endif
+		ASSERT_LV1(kk != nullptr);
+		// →　32bit環境だとこの変数、単なるポインタなのでこのassertは意味がないのだが、
+		// とりあえず開発時に早期に気づくようにこのassertを入れておく。
 
 		Square sq_bk = pos.king_square(BLACK);
 		Square sq_wk = pos.king_square(WHITE);
@@ -718,8 +719,27 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 
 		auto& pos_ = *const_cast<Position*>(&pos);
 
+#if !defined (USE_EVAL_MAKE_LIST_FUNCTION)
+
 		auto list_fb = pos_.eval_list()->piece_list_fb();
 		auto list_fw = pos_.eval_list()->piece_list_fw();
+
+#else
+		// -----------------------------------
+		// USE_EVAL_MAKE_LIST_FUNCTIONが定義されているときは
+		// ここでeval_listをコピーして、組み替える。
+		// -----------------------------------
+
+		// バッファを確保してコピー
+		BonaPiece list_fb[40];
+		BonaPiece list_fw[40];
+		memcpy(list_fb, pos_.eval_list()->piece_list_fb(), sizeof(BonaPiece) * 40);
+		memcpy(list_fw, pos_.eval_list()->piece_list_fw(), sizeof(BonaPiece) * 40);
+
+		// ユーザーは、この関数でBonaPiece番号の自由な組み換えを行なうものとする。
+		make_list_function(pos, list_fb, list_fw);
+
+#endif
 
 		int i, j;
 		BonaPiece k0, k1, l0, l1;
@@ -901,7 +921,7 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 	}
 
 
-#ifdef USE_EVAL_HASH
+#if defined (USE_EVAL_HASH)
 	EvaluateHashTable g_evalTable;
 
 	// prefetchする関数も用意しておく。
@@ -912,6 +932,7 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 
 #endif
 
+#if !defined(USE_EVAL_MAKE_LIST_FUNCTION)
 	void evaluateBody(const Position& pos)
 	{
 		// 一つ前のノードからの評価値の差分を計算する。
@@ -926,7 +947,7 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 		// を呼び出すので通常この関数が呼び出されることはないのだが、学習関係でこれが出来ないと
 		// コードが書きにくいのでEVAL_LEARNのときは、このチェックをする。
 		if (
-#ifdef EVAL_LEARN
+#if defined (EVAL_LEARN)
 			prev == nullptr ||
 #endif
 			!prev->sum.evaluated())
@@ -1206,6 +1227,13 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 		}
 
 	}
+#else
+	// EvalListの組み換えを行なうときは差分計算をせずに(実装するのが大変なため)、毎回全計算を行なう。
+	Value evaluateBody(const Position& pos)
+	{
+		return compute_eval(pos);
+	}
+#endif // USE_EVAL_MAKE_LIST_FUNCTION
 
 	// 評価関数
 	Value evaluate(const Position& pos)
@@ -1276,9 +1304,17 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 
 	void evaluate_with_no_return(const Position& pos)
 	{
+		// 評価関数の実験のときには、どうせ差分計算を行わないので、
+		// ここでevaluate()を呼ぶのは無駄である。
+
+#if !defined(USE_EVAL_MAKE_LIST_FUNCTION)
 		// まだ評価値が計算されていないなら
 		if (!pos.state()->sum.evaluated())
 			evaluate(pos);
+#else
+		// EvalListの組み換えを行なっているときは通常の差分計算ルーチンが機能しないので
+		// 差分計算をするための何かをする必要がない。
+#endif
 	}
 
 	// 現在の局面の評価値の内訳を表示する。
@@ -1360,4 +1396,4 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 
 }
 
-#endif // EVAL_KPPT
+#endif // defined (EVAL_KPPT)

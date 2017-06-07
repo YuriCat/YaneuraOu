@@ -104,6 +104,15 @@
 // KPPT評価関数の学習に使うときのモード
 // #define EVAL_LEARN
 
+// Eval::compute_eval()やLearner::add_grad()を呼び出す前にEvalListの組み換えを行なう機能を提供する。
+// 評価関数の実験に用いる。詳しくは、Eval::make_list_functionに書いてある説明などを読むこと。
+// #define USE_EVAL_MAKE_LIST_FUNCTION
+
+// この機能は、やねうら王の評価関数の開発/実験用の機能で、いまのところ一般ユーザーには提供していない。
+// 評価関数番号を指定するとその評価関数を持ち、その評価関数ファイルの読み込み/書き出しに自動的に対応して、
+// かつ評価関数の旧形式からの変換が"test convert"コマンドで自動的に出来るようになるという、わりかし凄い機能
+// #define EVAL_EXPERIMENTAL 0001
+
 // 長い利き(遠方駒の利き)のライブラリを用いるか。
 // 超高速1手詰め判定などではこのライブラリが必要。
 // do_move()のときに利きの差分更新を行なうので、do_move()は少し遅くなる。(その代わり、利きが使えるようになる)
@@ -187,6 +196,10 @@
 
 // トーナメント(大会)用のビルド。最新CPU(いまはAVX2)用でEVAL_HASH大きめ。EVAL_LEARN、TEST_CMD使用不可。ASSERTなし。GlobalOptionsなし。
 // #define FOR_TOURNAMENT
+
+// 棋譜の変換などを行なうツールセット。CSA,KIF,KIF2(KI2)形式などの入出力を担う。
+// これをdefineすると、extra/kif_converter/ フォルダにある棋譜や指し手表現の変換を行なう関数群が使用できるようになる。
+// #define USE_KIF_CONVERT_TOOLS
 
 // --------------------
 // release configurations
@@ -299,6 +312,13 @@
 #ifdef YANEURAOU_2017_EARLY_ENGINE
 #define ENGINE_NAME "YaneuraOu 2017 Early"
 #define EVAL_KPPT
+
+// 実験中の評価関数
+// 評価関数の番号を選択できる。0001～9999から選ぶ。
+// 番号として、0000は、if EVAL_EXPERIMENTAL == 0000と判定しようとしたときに、C++の言語仕様として
+// シンボルが定義されていないときこの条件式が真だと判定されてしまうので使えない。
+//#define EVAL_EXPERIMENTAL 0001
+
 #define USE_EVAL_HASH
 #define USE_SEE
 #define USE_MOVE_PICKER_2017Q2
@@ -429,10 +449,14 @@
 // --------------------
 
 // 学習時にはEVAL_HASHを無効化しておかないと、rmseの計算のときなどにeval hashにhitしてしまい、
-// 正しく計算できない。
+// 正しく計算できない。そのため、EVAL_HASHを動的に無効化するためのオプションを用意する。
 #if defined(EVAL_LEARN)
-#undef USE_EVAL_HASH
 #define USE_GLOBAL_OPTIONS
+#endif
+
+// 評価関数の実験用のときは、EvalListの組み換えが必要になる。
+#if defined(EVAL_EXPERIMENTAL)
+#define USE_EVAL_MAKE_LIST_FUNCTION
 #endif
 
 // --------------------
@@ -585,6 +609,14 @@ const bool pretty_jp = false;
 #define PIECE_DROP 0
 #endif
 
+// --- lastMove
+
+// KIF形式に変換するときにPositionクラスにその局面へ至る直前の指し手が保存されていないと
+// "同"金のように出力できなくて困る。
+#ifdef USE_KIF_CONVERT_TOOLS
+#define KEEP_LAST_MOVE
+#endif
+
 // ----------------------------
 //      CPU environment
 // ----------------------------
@@ -735,6 +767,11 @@ inline int MKDIR(std::string dir_name)
 // Skylake以降でないとほぼ効果がないが…。
 #if defined(EVAL_KPPT) && defined(USE_AVX2)
 #define USE_FAST_KPPT
+// AVX2を用いるので32bitであって欲しい。
+typedef int32_t BonaPieceType;
+#else
+// テーブルサイズを節約したいのでAVX2を使わないなら16bitで十分。
+typedef int16_t BonaPieceType;
 #endif
 
 // -- 評価関数の種類により、盤面の利きの更新ときの処理が異なる。(このタイミングで評価関数の差分計算をしたいので)

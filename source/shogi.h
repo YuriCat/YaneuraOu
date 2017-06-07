@@ -8,7 +8,7 @@
 
 // 思考エンジンのバージョンとしてUSIプロトコルの"usi"コマンドに応答するときの文字列。
 // ただし、この値を数値として使用することがあるので数値化できる文字列にしておく必要がある。
-#define ENGINE_VERSION "4.64"
+#define ENGINE_VERSION "4.65"
 
 // --------------------
 // コンパイル時の設定
@@ -218,6 +218,7 @@ inline Square Mir(Square sq) { return File(4-file_of(sq)) | rank_of(sq); }
 // "PRETTY_JP"をdefineしていなければ、数字のみの表示になる。例 → 88
 inline std::string pretty(Square sq) { return pretty(file_of(sq)) + pretty(rank_of(sq)); }
 
+
 // USI形式でSquareを出力する
 inline std::ostream& operator<<(std::ostream& os, Square sq) { os << file_of(sq) << rank_of(sq); return os; }
 
@@ -297,6 +298,16 @@ namespace Effect8
 
 	// Directionsに相当するものを引数に渡して1つ方角を取り出す。
 	inline Direct pop_directions(Directions& d) { return (Direct)pop_lsb(d); }
+
+	// ある方角の反対の方角(180度回転させた方角)を得る。
+	inline Direct operator~(Direct d) {
+		// Directの定数値を変更したら、この関数はうまく動作しない。
+		static_assert(Effect8::DIRECT_R == 1, "");
+		static_assert(Effect8::DIRECT_L == 6, "");
+		// DIRECT_RUUなどは引数に渡してはならない。
+		ASSERT_LV3(d < DIRECT_NB);
+		return Direct(7 - d);
+	}
 
 	// DirectからDirectionsへの逆変換
 	inline Directions to_directions(Direct d) { return Directions(1 << d); }
@@ -839,12 +850,8 @@ inline Value draw_value(RepetitionState rs, Color c) { ASSERT_LV3(is_ok(rs)); re
 
 namespace Eval
 {
-	// AVX2ありのときはKPPT評価関数をAVX2命令で高速化するためにBonaPieceは32bit化されていて欲しい。
-#if defined(USE_FAST_KPPT)
-	enum BonaPiece: int32_t;
-#else
-	enum BonaPiece: int16_t;
-#endif
+	// BonanzaでKKP/KPPと言うときのP(Piece)を表現する型。
+	enum BonaPiece: BonaPieceType;
 
 	// 評価関数本体。
 	// 戻り値は、

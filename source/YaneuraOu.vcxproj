@@ -650,6 +650,7 @@
     <ClInclude Include="engine\mate-engine\mate-search.h" />
     <ClInclude Include="engine\must-capture-shogi-engine\must-capture-shogi-param.h" />
     <ClInclude Include="evaluate.h" />
+    <ClInclude Include="eval\evaluate_io.h" />
     <ClInclude Include="eval\evaluate_kppt.h" />
     <ClInclude Include="eval\kppt_evalsum.h" />
     <ClInclude Include="eval\progress.h" />
@@ -660,6 +661,8 @@
     <ClInclude Include="extra\book\mt64bit.h" />
     <ClInclude Include="extra\config.h" />
     <ClInclude Include="extra\key128.h" />
+    <ClInclude Include="extra\kif_converter\kif_convert_consts.h" />
+    <ClInclude Include="extra\kif_converter\kif_convert_tools.h" />
     <ClInclude Include="extra\long_effect.h" />
     <ClInclude Include="extra\macros.h" />
     <ClInclude Include="extra\mate\mate1ply.h" />
@@ -698,10 +701,11 @@
     <ClCompile Include="engine\random-player-engine\random-player-search.cpp" />
     <ClCompile Include="engine\user-engine\user-search.cpp" />
     <ClCompile Include="eval\evaluate_bona_piece.cpp" />
+    <ClCompile Include="eval\evaluate_io.cpp" />
     <ClCompile Include="eval\evaluate_kkpt.cpp" />
     <ClCompile Include="eval\evaluate_kpp.cpp" />
     <ClCompile Include="eval\evaluate_kppt.cpp" />
-    <ClCompile Include="eval\evaluate_material.cpp" />
+    <ClCompile Include="eval\evaluate.cpp" />
     <ClCompile Include="eval\evaluate_no_eval.cpp" />
     <ClCompile Include="eval\progress.cpp" />
     <ClCompile Include="extra\benchmark.cpp" />
@@ -709,6 +713,7 @@
     <ClCompile Include="extra\book\apery_book.cpp" />
     <ClCompile Include="extra\book\book.cpp" />
     <ClCompile Include="extra\entering_king_win.cpp" />
+    <ClCompile Include="extra\kif_converter\kif_convert_tools.cpp" />
     <ClCompile Include="extra\long_effect.cpp" />
     <ClCompile Include="extra\mate\mate1ply_without_effect.cpp" />
     <ClCompile Include="extra\mate\mate1ply_with_effect.cpp" />
@@ -737,6 +742,7 @@
     <Text Include="..\docs\やねうら大定跡.txt" />
     <Text Include="..\docs\更新履歴.txt" />
     <Text Include="..\docs\解説.txt" />
+    <Text Include="..\docs\開発ToDo.txt" />
     <Text Include="..\docs\開発メモ2017.txt" />
     <Text Include="..\exe\eval\readme.txt" />
     <Text Include="..\script\readme.txt" />

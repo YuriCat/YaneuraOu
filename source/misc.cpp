@@ -276,10 +276,13 @@ void prefetch2(void* addr)
 	prefetch((uint8_t*)addr + 64);
 }
 
+// --------------------
+//  全プロセッサを使う
+// --------------------
 
 namespace WinProcGroup {
 
-#ifndef _WIN32
+#if !defined ( _WIN32 )
 
 	void bindThisThread(size_t) {}
 

@@ -108,7 +108,7 @@ struct StateInfo
 	int sumWKPP;
 	#endif
 
-	#if defined(EVAL_KKPT) || defined(EVAL_KPPT)
+	#if defined(EVAL_KKPT) || defined(EVAL_KPPT) || defined(EVAL_EXPERIMENTAL)
 	// 評価値。(次の局面で評価値を差分計算するときに用いる)
 	// まだ計算されていなければsum.p[2][0]の値はINT_MAX
 	Eval::EvalSum sum;
@@ -451,7 +451,7 @@ struct Position
 
 	// --- Evaluation
 
-#ifndef EVAL_NO_USE
+#if !defined (EVAL_NO_USE)
   // 評価関数で使うための、どの駒番号の駒がどこにあるかなどの情報。
 	const Eval::EvalList* eval_list() const { return &evalList; }
 #endif
@@ -795,4 +795,4 @@ std::ostream& operator<<(std::ostream& os, const Position& pos);
 // depthに応じたZobrist Hashを得る。depthを含めてhash keyを求めたいときに用いる。
 HASH_KEY DepthHash(int depth);
 
-#endif // of #ifndef _SHOGI_H_
+#endif // of #ifndef _POSITION_H_

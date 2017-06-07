@@ -25,8 +25,9 @@ namespace Book
 	// USI拡張コマンド "makebook"(定跡作成)
 	// ----------------------------------
 
-	// 局面を与えて、その局面で思考させるために、やねうら王2016Midが必要。
-#if defined(EVAL_LEARN) && (defined(YANEURAOU_2016_MID_ENGINE) || defined(YANEURAOU_2016_LATE_ENGINE))
+	// 局面を与えて、その局面で思考させるために、やねうら王2017Earlyが必要。
+#if defined(EVAL_LEARN) && defined(YANEURAOU_2017_EARLY_ENGINE)
+
 	struct MultiThinkBook : public MultiThink
 	{
 		MultiThinkBook(int search_depth_, MemoryBook & book_)
@@ -66,8 +67,10 @@ namespace Book
 			if (pos.is_mated())
 				continue;
 
-			// depth手読みの評価値とPV(最善応手列)
-			search(pos, -VALUE_INFINITE, VALUE_INFINITE, search_depth);
+			// depth手読みの評価値とPV(最善応手列)を取得。
+			// 内部的にはLearner::search()を呼び出す。
+			// Learner::search()は、現在のOptions["MultiPV"]の値に従い、MultiPVで思考することが保証されている。
+			search(pos, search_depth);
 
 			// MultiPVで局面を足す、的な
 
@@ -118,10 +121,10 @@ namespace Book
 		// 定跡の変換
 		bool convert_from_apery = token == "convert_from_apery";
 
-#if !defined(EVAL_LEARN) || !(defined(YANEURAOU_2016_MID_ENGINE) || defined(YANEURAOU_2016_LATE_ENGINE))
+#if !defined(EVAL_LEARN) || !defined(YANEURAOU_2017_EARLY_ENGINE)
 		if (from_thinking)
 		{
-			cout << "Error!:define EVAL_LEARN and ( YANEURAOU_2016_MID_ENGINE or LATE_ENGINE) " << endl;
+			cout << "Error!:define EVAL_LEARN and YANEURAOU_2017_EARLY_ENGINE " << endl;
 			return;
 		}
 #endif
@@ -130,7 +133,27 @@ namespace Book
 		{
 			// sfenファイル名
 			is >> token;
-			string sfen_name = token;
+
+			// 読み込むべきファイル名
+			string sfen_file_name[COLOR_NB];
+
+			// ここに "bw"(black and whiteの意味)と指定がある場合、
+			// 先手局面用と後手局面用とのsfenファイルが異なるという意味。
+			// つまり、このあとsfenファイル名の指定が2つ来ることを想定している。
+
+			// 先後両方のsfenファイルを指定されているときはこのフラグをtrueに設定しておく。
+			bool bw_files;
+			if (token == "bw")
+			{
+				is >> sfen_file_name[BLACK];
+				is >> sfen_file_name[WHITE];
+				bw_files = true;
+			}
+			else {
+				/*BLACKとWHITEと共通*/
+				sfen_file_name[0] = token;
+				bw_files = false;
+			}
 
 			// 定跡ファイル名
 			string book_name;
@@ -179,8 +202,42 @@ namespace Book
 				<< " , depth = " << depth
 				<< " , cluster = " << cluster_id << "/" << cluster_num << endl;
 
-			vector<string> sfens;
-			read_all_lines(sfen_name, sfens);
+			// 解析対象とするsfen集合。
+			// 読み込むべきsfenファイル名が2つ指定されている時は、
+			// 先手用と後手用の局面で個別のsfenファイルが指定されているということ。
+
+			// Colorは、例えばBLACKが指定されていれば、ここで与えられるsfenの一連の局面は
+			// 先手番のときのみ処理対象とする。
+			typedef pair<string, Color> SfenAndColor;
+			vector<SfenAndColor> sfens;
+			
+			if (bw_files)
+			{
+				vector<string> tmp_sfens;
+				read_all_lines(sfen_file_name[0], tmp_sfens);
+
+				// こちらは先後、どちらの手番でも解析対象とするのでCOLOR_NBを指定しておく。
+				for (auto& sfen : tmp_sfens)
+					sfens.push_back(SfenAndColor(sfen, COLOR_NB));
+			}
+			else
+			{
+				// sfenファイルを2つとも読み込み、手番を指定しておく。
+				for (auto c : COLOR)
+				{
+					auto& filename = sfen_file_name[c];
+
+					// ファイル名として"no_file"が指定されていれば、先手用 or 後手用のsfenはファイルは
+					// 読み込まないという指定になる。
+					if (filename == "no_file")
+						continue;
+
+					vector<string> tmp_sfens;
+					read_all_lines(filename, tmp_sfens);
+					for (auto& sfen : tmp_sfens)
+						sfens.push_back(SfenAndColor(sfen, c));
+				}
+			}
 
 			cout << "..done" << endl;
 
@@ -209,7 +266,12 @@ namespace Book
 			// 各行の局面をparseして読み込む(このときに重複除去も行なう)
 			for (size_t k = 0; k < sfens.size(); ++k)
 			{
-				auto sfen = sfens[k];
+				// sfenを取り出す(普通のsfen文字列とは限らない。"startpos"から書かれているかも)
+				auto sfen = sfens[k].first;
+
+				// ここで指定されている手番の局面しか処理対象とはしない。
+				// ただしCOLOR_NBが指定されているときは、「希望する手番はない」の意味。
+				auto color = sfens[k].second;
 
 				if (sfen.length() == 0)
 					continue;
@@ -220,12 +282,27 @@ namespace Book
 					iss >> token;
 				} while (token == "startpos" || token == "moves");
 
-				vector<Move> m;    // 初手から(moves+1)手までの指し手格納用
-				vector<string> sf; // 初手から(moves+0)手までのsfen文字列格納用
+				vector<Move> m;				// 初手から(moves+1)手までの指し手格納用
+
+				// is_validは、この局面を処理対象とするかどうかのフラグ
+				// 処理対象としない局面でもとりあえずsfにpush_back()はしていく。(indexの番号が狂うため)
+				typedef pair<string, bool /*is_valid*/> SfenAndBool;
+				vector<SfenAndBool> sf;		// 初手から(moves+0)手までのsfen文字列格納用
 
 				StateInfo si[MAX_PLY];
 
 				pos.set_hirate();
+
+				// 変数sfに解析対象局面としてpush_backする。
+				// ただし、
+				// 1) color == COLOR_NB (希望する手番なし)のとき
+				// 2) この局面の手番が、希望する手番の局面のとき
+				// に限る。
+				auto append_to_sf = [&sf,pos,&color]()
+				{
+					sf.push_back(SfenAndBool(pos.sfen(),
+						/* is_valid = */ color == COLOR_NB || color == pos.side_to_move()));
+				};
 
 				// sfenから直接生成するときはponderのためにmoves + 1の局面まで調べる必要がある。
 				for (int i = 0; i < moves + (from_sfen ? 1 : 0); ++i)
@@ -240,7 +317,7 @@ namespace Book
 					{
 						// この局面、未知の局面なのでpushしないといけないのでは..
 						if (!from_sfen)
-							sf.push_back(pos.sfen());
+							append_to_sf();
 						break;
 					}
 
@@ -256,7 +333,7 @@ namespace Book
 					if (!is_ok(move))
 						break;
 
-					sf.push_back(pos.sfen());
+					append_to_sf();
 					m.push_back(move);
 
 					pos.do_move(move, si[i]);
@@ -267,17 +344,22 @@ namespace Book
 					if (i < start_moves - 1)
 						continue;
 
+					// 現局面の手番が望むべきものではないので解析をskipする。
+					if (!sf[i].second /* sf[i].is_valid */)
+						continue;
+
+					const auto& sfen = sf[i].first;
 					if (from_sfen)
 					{
 						// この場合、m[i + 1]が必要になるので、m.size()-1までしかループできない。
 						BookPos bp(m[i], m[i + 1], VALUE_ZERO, 32, 1);
-						insert_book_pos(book, sf[i], bp);
+						insert_book_pos(book, sfen, bp);
 					}
 					else if (from_thinking)
 					{
 						// posの局面で思考させてみる。(あとでまとめて)
-						if (thinking_sfens.count(sf[i]) == 0)
-							thinking_sfens.insert(sf[i]);
+						if (thinking_sfens.count(sfen) == 0)
+							thinking_sfens.insert(sfen);
 					}
 				}
 
@@ -287,7 +369,7 @@ namespace Book
 			}
 			cout << "done." << endl;
 
-#if defined(EVAL_LEARN) && (defined(YANEURAOU_2016_MID_ENGINE)||defined(YANEURAOU_2016_LATE_ENGINE))
+#if defined(EVAL_LEARN) && defined(YANEURAOU_2017_EARLY_ENGINE)
 
 			if (from_thinking)
 			{
@@ -912,15 +994,22 @@ namespace Book
 				auto file_size = u64(file_end - file_start);
 
 				// 与えられたseek位置から"sfen"文字列を探し、それを返す。どこまでもなければ""が返る。
-				// hackとして、seek位置は-80しておく。
+				// hackとして、seek位置は-2しておく。(1行読み捨てるので、seek_fromぴったりのところに
+				// "sfen"から始まる文字列があるとそこを読み捨ててしまうため。-2してあれば、そこに
+				// CR+LFがあるはずだから、ここを読み捨てても大丈夫。)
 				auto next_sfen = [&](u64 seek_from)
 				{
 					string line;
 
-					fs.seekg(max(s64(0), (s64)seek_from - 80), fstream::beg);
-					getline(fs, line); // 1行読み捨てる
+					fs.seekg(max(s64(0), (s64)seek_from - 2), fstream::beg);
 
-									   // getlineはeof()を正しく反映させないのでgetline()の返し値を用いる必要がある。
+					// --- 1行読み捨てる
+
+					// seek_from == 0の場合も、ここで1行読み捨てられるが、1行目は
+					// ヘッダ行であり、問題ない。
+					getline(fs, line);
+
+					// getlineはeof()を正しく反映させないのでgetline()の返し値を用いる必要がある。
 					while (getline(fs, line))
 					{
 						if (!line.compare(0, 4, "sfen"))
@@ -933,6 +1022,7 @@ namespace Book
 				};
 
 				// バイナリサーチ
+				// [s,e) の範囲で求める。
 
 				u64 s = 0, e = file_size, m;
 
@@ -955,18 +1045,16 @@ namespace Book
 					}
 
 					// 40バイトより小さなsfenはありえないので探索範囲がこれより小さいなら終了。
-					// ただしs = 0のままだと先頭が探索されていないので..
 					// s,eは無符号型であることに注意。if (s-40 < e) と書くとs-40がマイナスになりかねない。
 					if (s + 40 > e)
 					{
-						if (s != 0 || e != 0)
-						{
-							// 見つからなかった
-							return book_body.end();
-						}
+						// ただしs = 0のままだと先頭要素が探索されていないということなので
+						// このケースに限り先頭要素を再探索
+						if (s == 0 && next_sfen(s) == sfen)
+							break;
 
-						// もしかしたら先頭付近にあるかも知れん..
-						e = 0; // この条件で再度サーチ
+						// 見つからなかった
+						return book_body.end();
 					}
 
 				}
@@ -984,6 +1072,9 @@ namespace Book
 						bp.prob = float(bp.num) / num_sum;
 					num_sum = 0;
 				};
+
+				// sfen文字列が合致したところまでは確定しており、そこまでfileのseekは完了している。
+				// その直後に指し手が書かれているのでそれをgetline()で読み込めば良い。
 
 				while (!fs.eof())
 				{

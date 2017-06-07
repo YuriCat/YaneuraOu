@@ -254,15 +254,28 @@ shogi.hの
 
 	
 > makebook from_sfen book.sfen standard_book.db moves 16
-	※　	やねうら王2016Midなど、この機能に対応している思考エンジンが必要。
+	※　	やねうら王2017Earlyなど、この機能に対応している思考エンジンが必要。
 
 1行1局の棋譜を読み込ませてそれを上のフォーマットに変換する。standard_book.dbになる。
 各局、"moves"のあとに指定した手数までを出力する。このファイルを思考エンジンの実行ファイル配下のbookフォルダに配置する。
 
 floodgateのよさ気な棋譜をsfenに変換してこのコマンドで定跡を作成したものをexe/book/standard_book.dbに入れてあります。ご自由にお使いください。
 
+
+> makebook from_sfen bw black_book.sfen white_book.sfen standard_book.db moves 16
+
+"from_sfen"の直後に"bw"(black and whiteの意味)を指定した場合、sfenファイルとして2つのファイルが指定できる。
+1つ目のsfenファイルは、そのsfenファイルから先手の局面だけを抽出して使う。
+1つ目のsfenファイルは、そのsfenファイルから後手の局面だけを抽出して使う。
+
+また、このとき、sfenファイル名として"no_file"を指定すると、先手用 or 後手用のsfenファイルは無しであるというのを指定できる。
+
+例)
+> makebook from_sfen bw no_file white_book.sfen standard_book.db moves 16
+
+
 > makebook think 2016.sfen yaneura_book.db moves 16 depth 32
-	※　	やねうら王2016Midなど、この機能に対応している思考エンジンが必要。
+	※　	やねうら王2017Earlyなど、この機能に対応している思考エンジンが必要。
 
 	2016.sfenという棋譜を読みこみ、その16手目までをdepth 32で思考させて、
 	そのときの上位3手を定跡ファイルに書き出す。
@@ -296,6 +309,13 @@ floodgateのよさ気な棋譜をsfenに変換してこのコマンドで定跡�
 	PCを複数台で定跡を並列生成するとき用。
 	3台あって、1台目、2台目、3台目のPCで上のように入力すると思考対象局面を分散させる。
 	もちろん3台以外の場合であってても同様にすれば並列生成できる。
+
+> makebook think bw black_2016.sfen white_2016.sfen yaneura_book.db startmoves 5 moves 16 depth 32 cluster 3 3
+
+"from_sfen"のときと同様に、直後に"bw"を指定した場合、sfenファイルとして2つのファイルが指定できる。
+1つ目のsfenファイルは、そのsfenファイルから先手の局面だけを抽出して使う。
+1つ目のsfenファイルは、そのsfenファイルから後手の局面だけを抽出して使う。
+
 
 > makebook merge yaneura_book1.db yaneura_book2.db yaneura_book3.db
 	※　	やねうら王2016Midなど、この機能に対応している思考エンジンが必要。
@@ -493,3 +513,20 @@ book/book.bin
 またEVAL_HASH大きめにしてあるのでメモリはたくさん消費しますが、一度探索した局面は評価関数の計算を端折れます。
 2手前に思考した内容が生きるので通常対局においてはやや有利で、3～5%速いはずです。
 
+
+■　Apery(WCSC27)で使われている評価関数ファイルと、やねうら王2017Earlyで使われている評価関数ファイルとの相互変換について
+
+以下では
+「Apery(WCSC27)で使われている評価関数ファイル」のことを"kppt16"と呼びます。
+「やねうら王2017Earlyで使われている評価関数ファイル」のことを"kppt32"と呼びます。
+
+これらの相互変換は "test evalconvert"というコマンドで行なうことが出来ます。
+
+例)
+> test evalconvert kppt16 eval/elmo_apery27 kppt32 eval/elmo_yane27
+eval/elmo_apery27に格納されているkppt16の評価関数ファイルが、kppt32に変換されてeval/elmo_yane27に格納されます。
+出力先のフォルダが存在しない場合は自動的に作成されます。
+
+> test evalconvert kppt32 eval/elmo_yane27 kppt16 eval/elmo_apery27
+eval/elmo_yane27に格納されているkppt32の評価関数ファイルが、kppt16に変換されてeval/elmo_apery27に格納されます。
+出力先のフォルダが存在しない場合は自動的に作成されます。

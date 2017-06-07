@@ -255,7 +255,6 @@ extern void prefetch(void* addr);
 // 連続する128バイトをprefetchするときに用いる。
 extern void prefetch2(void* addr);
 
-
 // --------------------
 //  全プロセッサを使う
 // --------------------
