@@ -697,7 +697,7 @@ private:
 #endif
 	// ---
 
-	// 盤面、81升分の駒 + 1
+	// 盤面、25升分の駒 + 1
 	Piece board[SQ_NB_PLUS1];
 
 	// 手駒

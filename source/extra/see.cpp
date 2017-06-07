@@ -39,8 +39,8 @@ namespace {
 
 	  Bitboard b;
 	  b = stmAttackers & pos.pieces(PAWN);   if (b) goto found;
-	  b = stmAttackers & pos.pieces(LANCE);  if (b) goto found;
-	  b = stmAttackers & pos.pieces(KNIGHT); if (b) goto found;
+	  /*55 b = stmAttackers & pos.pieces(LANCE);  if (b) goto found;
+	  b = stmAttackers & pos.pieces(KNIGHT); if (b) goto found;*/
 	  b = stmAttackers & pos.pieces(SILVER); if (b) goto found;
 	  b = stmAttackers & pos.pieces(GOLDS);  if (b) goto found;
 	  b = stmAttackers & pos.pieces(BISHOP); if (b) goto found;
@@ -83,14 +83,14 @@ namespace {
 
 	  case DIRECT_U:
 		  // 後手の香 + 先後の飛車
-		  attackers |= lanceEffect(BLACK , to, occupied) & (pos.pieces(ROOK_DRAGON) | pos.pieces(WHITE, LANCE));
+		  attackers |= lanceEffect(BLACK , to, occupied) & (pos.pieces(ROOK_DRAGON)/*55 | pos.pieces(WHITE, LANCE)*/);
 
 		  ASSERT_LV3((lanceStepEffect(BLACK, to) & sq));
 		  break;
 
 	  case DIRECT_D:
 		  // 先手の香 + 先後の飛車
-		  attackers |= lanceEffect(WHITE , to, occupied) & (pos.pieces(ROOK_DRAGON) | pos.pieces(BLACK, LANCE));
+		  attackers |= lanceEffect(WHITE , to, occupied) & (pos.pieces(ROOK_DRAGON)/*55 | pos.pieces(BLACK, LANCE)*/);
 
 		  ASSERT_LV3((lanceStepEffect(WHITE, to) & sq));
 		  break;

@@ -120,8 +120,8 @@ template <Piece Pt, Color Us, bool All> struct make_move_target {
 				if (canPromote(Us, to))
 				{
 					mlist++->move = make_move_promote(from, to) + OurProPt(Us, Pt);
-					if (All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_5))
-						mlist++->move = make_move(from, to) + OurPt(Us, Pt);
+					/*55 if (All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_5))
+						mlist++->move = make_move(from, to) + OurPt(Us, Pt); 5五将棋では歩の不成は無い */
 				}
 				else
 					mlist++->move = make_move(from, to) + OurPt(Us, Pt);
@@ -131,26 +131,26 @@ template <Piece Pt, Color Us, bool All> struct make_move_target {
 			// 成れるなら成りも生成するが、2段目への不成を生成するのはAllのときだけ。また1段目には不成で移動できない。
 		case LANCE:
 		{
-			target2 = target & enemy_field(Us);
+			/*55 target2 = target & enemy_field(Us);
 			MAKE_MOVE_TARGET_PRO_ONLY(target2);
 			// 不成で移動する升
 			target &= All ? (Us == BLACK ? InFrontBB[WHITE][RANK_1] : InFrontBB[BLACK][RANK_5]) :
 				(Us == BLACK ? InFrontBB[WHITE][RANK_2] : InFrontBB[BLACK][RANK_4]);
-			MAKE_MOVE_TARGET(target);
+			MAKE_MOVE_TARGET(target);*/
 		}
 		break;
 
 		// 成れるなら成りも生成するが、1,2段目には不成で移動できない。
 		case KNIGHT:
 		{
-			while (target)
+			/*55 while (target)
 			{
 				to = target.pop();
 				if (canPromote(Us, to))
 					mlist++->move = make_move_promote(from, to) + OurProPt(Us, Pt);
 				if ((Us == BLACK && rank_of(to) >= RANK_1) || (Us == WHITE && rank_of(to) <= RANK_5))
 					mlist++->move = make_move(from, to) + OurPt(Us, Pt);
-			}
+			}*/
 		}
 		break;
 
@@ -232,8 +232,8 @@ template <MOVE_GEN_TYPE GenType, Piece Pt, Color Us, bool All> struct GeneratePi
 
 			// 移動できる場所 = 利きのある場所
 			auto target2 =
-				Pt == LANCE  ? lanceEffect(Us, from, occ) :
-				Pt == KNIGHT ? knightEffect(Us, from) :
+				/*55 Pt == LANCE  ? lanceEffect(Us, from, occ) :
+				Pt == KNIGHT ? knightEffect(Us, from) :*/
 				Pt == SILVER ? silverEffect(Us, from) :
 				ALL_BB; // error
 
@@ -269,8 +269,8 @@ template <MOVE_GEN_TYPE GenType, Color Us, bool All> struct GeneratePieceMoves<G
 
 				// ただしAll(全合法手を生成するとき)だけは不成も生成
 				// また、移動先の升が1段目は、成れないのでその指し手生成は除外
-				if (All && rank_of(to) != T_RANK1)
-					mlist++->move = make_move(from, to) + OurPt(Us, PAWN);
+				/*55 if (All && rank_of(to) != T_RANK1)
+					mlist++->move = make_move(from, to) + OurPt(Us, PAWN); 5五将棋では歩の不成は無い */
 			}
 			else
 				mlist++->move = make_move(from, to) + OurPt(Us, PAWN);
@@ -416,12 +416,12 @@ template <Color Us> struct GenerateDropMoves {
 			// そのため、手駒から香・桂を除いた駒と、桂を除いた駒が必要となる。
 
 			int num = 0;
-			if (hand_exists(hk, KNIGHT)) drops[num++] = make_move_drop(KNIGHT, SQ_ZERO) + OurDropPt(Us, KNIGHT);
+			/*55 if (hand_exists(hk, KNIGHT)) drops[num++] = make_move_drop(KNIGHT, SQ_ZERO) + OurDropPt(Us, KNIGHT);
 
 			int nextToKnight = num; // 桂を除いたdropsのindex
-			if (hand_exists(hk, LANCE) ) drops[num++] = make_move_drop(LANCE, SQ_ZERO)  + OurDropPt(Us, LANCE);
+            if (hand_exists(hk, LANCE) ) drops[num++] = make_move_drop(LANCE, SQ_ZERO)  + OurDropPt(Us, LANCE);
 
-			int nextToLance = num; // 香・桂を除いたdropsのindex
+			int nextToLance = num; // 香・桂を除いたdropsのindex */
 
 			if (hand_exists(hk, SILVER)) drops[num++] = make_move_drop(SILVER, SQ_ZERO) + OurDropPt(Us, SILVER);
 			if (hand_exists(hk, GOLD)  ) drops[num++] = make_move_drop(GOLD  , SQ_ZERO) + OurDropPt(Us, GOLD);
@@ -433,8 +433,8 @@ template <Color Us> struct GenerateDropMoves {
 			// 動作ターゲットとするプロセッサにおいてbenchを取りながら進めるべき。
 			// SSEを用いた高速化など色々考えられるところではあるが、とりあえず速度的に許容できる範囲で、最低限のコードを示す。
 
-			if (nextToLance == 0)
-			{
+			/*55 if (nextToLance == 0)
+			{*/
 				// 香と桂を持っていないので駒を打てる全域に対して何も考えずに指し手を生成。
 				Bitboard target2 = target;
 
@@ -446,7 +446,7 @@ template <Color Us> struct GenerateDropMoves {
 				case 4: FOREACH_BB(target2, sq, { UNROLLER4({ mlist++->move = (Move)(drops[i] + sq); }); }); break;
 				default: UNREACHABLE;
 				}
-			}
+			/*55 }
 			else
 			{
 				// それ以外のケース
@@ -486,7 +486,7 @@ template <Color Us> struct GenerateDropMoves {
 				case 6: FOREACH_BB(target3, sq, { UNROLLER6({ mlist++->move = (Move)(drops[i] + sq); }); }); break;
 				default: UNREACHABLE;
 				}
-			}
+			}*/
 
 		}
 
@@ -563,8 +563,8 @@ ExtMove* generate_evasions(const Position& pos, ExtMove* mlist)
 
 	// あとはNON_EVASIONS扱いで普通に指し手生成。
 	mlist = GeneratePieceMoves<NON_EVASIONS, PAWN, Us, All>()(pos, mlist, target2);
-	mlist = GeneratePieceMoves<NON_EVASIONS, LANCE, Us, All>()(pos, mlist, target2);
-	mlist = GeneratePieceMoves<NON_EVASIONS, KNIGHT, Us, All>()(pos, mlist, target2);
+	/*55 mlist = GeneratePieceMoves<NON_EVASIONS, LANCE, Us, All>()(pos, mlist, target2);
+	mlist = GeneratePieceMoves<NON_EVASIONS, KNIGHT, Us, All>()(pos, mlist, target2);*/
 	mlist = GeneratePieceMoves<NON_EVASIONS, SILVER, Us, All>()(pos, mlist, target2);
 	mlist = GeneratePieceMoves<NON_EVASIONS, GPM_BR, Us, All>()(pos, mlist, target2);
 	mlist = GeneratePieceMoves<NON_EVASIONS, GPM_GHD, Us, All>()(pos, mlist, target2); // 玉は除かないといけない
@@ -618,8 +618,8 @@ ExtMove* generate_general(const Position& pos, ExtMove* mlist, Square recapSq = 
 	mlist = GeneratePieceMoves<GenType, PAWN, Us, All>()(pos, mlist, targetPawn);
 
 	// 香・桂・銀は成れるなら成らない手の他に成る手も生成する駒。これらによる移動の指し手
-	mlist = GeneratePieceMoves<GenType, LANCE, Us, All>()(pos, mlist, target);
-	mlist = GeneratePieceMoves<GenType, KNIGHT, Us, All>()(pos, mlist, target);
+	/*55 mlist = GeneratePieceMoves<GenType, LANCE, Us, All>()(pos, mlist, target);
+	mlist = GeneratePieceMoves<GenType, KNIGHT, Us, All>()(pos, mlist, target);*/
 	mlist = GeneratePieceMoves<GenType, SILVER, Us, All>()(pos, mlist, target);
 
 	// 角・飛による移動による指し手生成。これらの駒は成れるなら絶対に成る
@@ -650,16 +650,16 @@ template <Color Us, bool All> struct make_move_target_general {
 		switch (type_of(pc))
 		{
 		case PAWN      : mlist = make_move_target<PAWN, Us, All>()(pos, from, effect & target, mlist); break;
-		case LANCE     : mlist = make_move_target<LANCE, Us, All>()(pos, from, effect & target, mlist); break;
-		case KNIGHT    : mlist = make_move_target<KNIGHT, Us, All>()(pos, from, effect & target, mlist); break;
+		case LANCE     : /*55 mlist = make_move_target<LANCE, Us, All>()(pos, from, effect & target, mlist);*/ break;
+		case KNIGHT    : /*55 mlist = make_move_target<KNIGHT, Us, All>()(pos, from, effect & target, mlist);*/ break;
 		case SILVER    : mlist = make_move_target<SILVER, Us, All>()(pos, from, effect & target, mlist); break;
 		case GOLD      : mlist = make_move_target<GOLD, Us, All>()(pos, from, effect & target, mlist); break;
 		case BISHOP    : mlist = make_move_target<BISHOP, Us, All>()(pos, from, effect & target, mlist); break;
 		case ROOK      : mlist = make_move_target<ROOK, Us, All>()(pos, from, effect & target, mlist); break;
 		case KING      : mlist = make_move_target<KING, Us, All>()(pos, from, effect & target, mlist); break;
 		case PRO_PAWN  : mlist = make_move_target<PRO_PAWN, Us, All>()(pos, from, effect & target, mlist); break;
-		case PRO_LANCE : mlist = make_move_target<PRO_LANCE, Us, All>()(pos, from, effect & target, mlist); break;
-		case PRO_KNIGHT: mlist = make_move_target<PRO_KNIGHT, Us, All>()(pos, from, effect & target, mlist); break;
+		case PRO_LANCE : /*55 mlist = make_move_target<PRO_LANCE, Us, All>()(pos, from, effect & target, mlist);*/ break;
+		case PRO_KNIGHT: /*55 mlist = make_move_target<PRO_KNIGHT, Us, All>()(pos, from, effect & target, mlist);*/ break;
 		case PRO_SILVER: mlist = make_move_target<PRO_SILVER, Us, All>()(pos, from, effect & target, mlist); break;
 		case HORSE     : mlist = make_move_target<HORSE, Us, All>()(pos, from, effect & target, mlist); break;
 		case DRAGON    : mlist = make_move_target<DRAGON, Us, All>()(pos, from, effect & target, mlist); break;
@@ -684,10 +684,10 @@ ExtMove* make_move_target_pro(Square from, const Bitboard& target, ExtMove* mlis
 			if (((Pt == PAWN) &&
 				((!All && !canPromote(Us, to)) ||
 				(All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_5))))
-				|| ((Pt == LANCE) &&
+				/*55 || ((Pt == LANCE) &&
 				((!All && ((Us == BLACK && rank_of(to) == RANK_1) || (Us == WHITE && rank_of(to) == RANK_5))) ||
 					(All && rank_of(to) != (Us == BLACK ? RANK_1 : RANK_5))))
-				|| (Pt == KNIGHT && ((Us == BLACK && rank_of(to) == RANK_1) || (Us == WHITE && rank_of(to) == RANK_5)))
+				|| (Pt == KNIGHT && ((Us == BLACK && rank_of(to) == RANK_1) || (Us == WHITE && rank_of(to) == RANK_5)))*/
 				|| (Pt == SILVER)
 				|| ((Pt == BISHOP || Pt == ROOK) && (!(canPromote(Us, from) || canPromote(Us, to)) || All))
 				)
@@ -752,16 +752,16 @@ ExtMove* make_move_check(const Position& pos, Piece pc, Square from, Square ksq,
 	{
 		// -- 成れる駒
 	case PAWN      : GEN_MOVE_NONPRO_CHECK(PAWN, pawnEffect, goldEffect); break;
-	case LANCE     : GEN_MOVE_LANCE_CHECK(LANCE, lanceEffect, goldEffect); break;
-	case KNIGHT    : GEN_MOVE_NONPRO_CHECK(KNIGHT, knightEffect, goldEffect); break;
+	case LANCE     : /*55 GEN_MOVE_LANCE_CHECK(LANCE, lanceEffect, goldEffect);*/ break;
+	case KNIGHT    : /*55 GEN_MOVE_NONPRO_CHECK(KNIGHT, knightEffect, goldEffect);*/ break;
 	case SILVER    : GEN_MOVE_NONPRO_CHECK(SILVER, silverEffect, goldEffect); break;
 	case BISHOP    : GEN_MOVE_NONPRO_PRO_CHECK_BR(BISHOP, bishopEffect, horseEffect); break;
 	case ROOK      : GEN_MOVE_NONPRO_PRO_CHECK_BR(ROOK, rookEffect, dragonEffect); break;
 
 		// -- 成れない駒
 	case PRO_PAWN  : GEN_MOVE_GOLD_CHECK(PRO_PAWN, goldEffect); break;
-	case PRO_LANCE : GEN_MOVE_GOLD_CHECK(PRO_LANCE, goldEffect); break;
-	case PRO_KNIGHT: GEN_MOVE_GOLD_CHECK(PRO_KNIGHT, goldEffect); break;
+	case PRO_LANCE : /*55 GEN_MOVE_GOLD_CHECK(PRO_LANCE, goldEffect);*/ break;
+	case PRO_KNIGHT: /*55 GEN_MOVE_GOLD_CHECK(PRO_KNIGHT, goldEffect);*/ break;
 	case PRO_SILVER: GEN_MOVE_GOLD_CHECK(PRO_SILVER, goldEffect); break;
 	case GOLD      : GEN_MOVE_GOLD_CHECK(GOLD, goldEffect); break;
 	case HORSE     : GEN_MOVE_HD_CHECK(HORSE, horseEffect); break;
@@ -831,8 +831,8 @@ ExtMove* generate_checks(const Position& pos, ExtMove* mlist)
 	const Bitboard x =
 		(
 			(pos.pieces(PAWN)   & check_candidate_bb(Us, PAWN  , themKing)) |
-			(pos.pieces(LANCE)  & check_candidate_bb(Us, LANCE , themKing)) |
-			(pos.pieces(KNIGHT) & check_candidate_bb(Us, KNIGHT, themKing)) |
+			/*55 (pos.pieces(LANCE)  & check_candidate_bb(Us, LANCE , themKing)) |
+			(pos.pieces(KNIGHT) & check_candidate_bb(Us, KNIGHT, themKing)) |*/
 			(pos.pieces(SILVER) & check_candidate_bb(Us, SILVER, themKing)) |
 			(pos.pieces(GOLDS)  & check_candidate_bb(Us, GOLD  , themKing)) |
 			(pos.pieces(BISHOP) & check_candidate_bb(Us, BISHOP, themKing)) |
@@ -884,10 +884,10 @@ ExtMove* generate_checks(const Position& pos, ExtMove* mlist)
 	Hand h = pos.hand_of(Us);
 	if (hand_exists(h, PAWN))
 		mlist = GenerateCheckDropMoves<Us, PAWN>()(pos, pos.check_squares(PAWN) & empties, mlist);
-	if (hand_exists(h, LANCE))
+	/*55 if (hand_exists(h, LANCE))
 		mlist = GenerateCheckDropMoves<Us, LANCE>()(pos, pos.check_squares(LANCE) & empties, mlist);
 	if (hand_exists(h, KNIGHT))
-		mlist = GenerateCheckDropMoves<Us, KNIGHT>()(pos, pos.check_squares(KNIGHT) & empties, mlist);
+		mlist = GenerateCheckDropMoves<Us, KNIGHT>()(pos, pos.check_squares(KNIGHT) & empties, mlist);*/
 	if (hand_exists(h, SILVER))
 		mlist = GenerateCheckDropMoves<Us, SILVER>()(pos, pos.check_squares(SILVER) & empties, mlist);
 	if (hand_exists(h, GOLD))

@@ -102,7 +102,7 @@ namespace {
 					case PIECE_TYPE_CHECK_LANCE:
 
 						// 成りによるものもあるからな..候補だけ列挙しておくか。
-						bb = lanceStepEffect(~c, sq);
+						/*55 bb = lanceStepEffect(~c, sq);
 						if (enemy_field(c) ^ sq)
 						{
 							// 敵陣なので成りで王手できるから、sqより下段の香も足さないと。
@@ -110,14 +110,14 @@ namespace {
 								bb |= lanceStepEffect(~c, sq + SQ_R);
 							if (file_of(sq) != FILE_5)
 								bb |= lanceStepEffect(~c, sq + SQ_L);
-						}
+						}*/
 
 						break;
 
 					case PIECE_TYPE_CHECK_KNIGHT:
 
 						// 敵玉から桂の桂にある駒
-						tmp = knightEffect(~c, sq);
+						/*55 tmp = knightEffect(~c, sq);
 						while (tmp)
 						{
 							to = tmp.pop();
@@ -129,7 +129,7 @@ namespace {
 						{
 							to = tmp.pop();
 							bb |= knightEffect(~c, to);
-						}
+						}*/
 						break;
 
 					case PIECE_TYPE_CHECK_SILVER:
@@ -225,21 +225,21 @@ namespace {
 
 					case LANCE:
 						// 香で玉8近傍の利きに関与するのは…。玉と同じ段より攻撃側の陣にある香だけか..
-						bb = lanceStepEffect(~c, sq);
+						/*55 bb = lanceStepEffect(~c, sq);
 						if (file_of(sq) != FILE_1)
 							bb |= lanceStepEffect(~c, sq + SQ_R) | (sq + SQ_R);
 						if (file_of(sq) != FILE_5)
-							bb |= lanceStepEffect(~c, sq + SQ_L) | (sq + SQ_L);
+							bb |= lanceStepEffect(~c, sq + SQ_L) | (sq + SQ_L);*/
 						break;
 
 					case KNIGHT:
 						// 桂は玉8近傍の逆桂か。
-						tmp = kingEffect(sq);
+						/*55 tmp = kingEffect(sq);
 						while (tmp)
 						{
 							to = tmp.pop();
 							bb |= knightEffect(~c, to);
-						}
+						}*/
 						break;
 
 					case SILVER:
@@ -346,12 +346,12 @@ namespace {
 		Bitboard bb, sum = ZERO_BB;
 		Square from;
 
-		bb = pos.pieces(Us, LANCE);
+		/*55 bb = pos.pieces(Us, LANCE);
 		while (bb)
 		{
 			from = bb.pop();
 			sum |= lanceEffect(Us, from, slide);
-		}
+		}*/
 		bb = pos.pieces(Us, BISHOP_HORSE);
 		while (bb)
 		{
@@ -376,12 +376,12 @@ namespace {
 		Bitboard avoid_bb = ~Bitboard(avoid_from);
 		Square from;
 
-		bb = pos.pieces(Us, LANCE) & avoid_bb;
+		/*55 bb = pos.pieces(Us, LANCE) & avoid_bb;
 		while (bb)
 		{
 			from = bb.pop();
 			sum |= lanceEffect(Us, from, occ);
-		}
+		}*/
 		bb = pos.pieces(Us, BISHOP_HORSE) & avoid_bb;
 		while (bb)
 		{
@@ -410,12 +410,12 @@ namespace {
 		Bitboard sum = pawnEffect(them, pos.pieces(them, PAWN));
 		
 		// ほとんどのケースにおいて候補になる駒はなく、whileで回らずに抜けると期待している。
-		bb = pos.pieces(them, KNIGHT) & check_around_bb(them, KNIGHT, sq_king);
+		/*55 bb = pos.pieces(them, KNIGHT) & check_around_bb(them, KNIGHT, sq_king);
 		while (bb)
 		{
 			from = bb.pop();
 			sum |= knightEffect(them, from);
-		}
+		}*/
 		bb = pos.pieces(them, SILVER) & check_around_bb(them, SILVER, sq_king);
 		while (bb)
 		{
@@ -447,12 +447,12 @@ namespace {
 		Bitboard bb;
 		Bitboard sum = ZERO_BB;
 
-		bb = pos.pieces(them, LANCE) & check_around_bb(them, LANCE, sq_king);
+		/*55 bb = pos.pieces(them, LANCE) & check_around_bb(them, LANCE, sq_king);
 		while (bb)
 		{
 			from = bb.pop();
 			sum |= lanceEffect(them, from, pos.pieces());
-		}
+		}*/
 		bb = pos.pieces(them, BISHOP_HORSE) & check_around_bb(them, BISHOP, sq_king);
 		while (bb)
 		{
@@ -481,12 +481,12 @@ namespace {
 		Bitboard sum = pawnEffect(them, pos.pieces(them, PAWN));
 		
 		// ほとんどのケースにおいて候補になる駒はなく、whileで回らずに抜けると期待している。
-		bb = pos.pieces(them, KNIGHT) & check_around_bb(them, KNIGHT, sq_king) & avoid_bb;
+		/*55 bb = pos.pieces(them, KNIGHT) & check_around_bb(them, KNIGHT, sq_king) & avoid_bb;
 		while (bb)
 		{
 			from = bb.pop();
 			sum |= knightEffect(them, from);
-		}
+		}*/
 		bb = pos.pieces(them, SILVER) & check_around_bb(them, SILVER, sq_king) & avoid_bb;
 		while (bb)
 		{
@@ -741,7 +741,7 @@ Move is_mate_in_1ply_imp(const Position& pos)
 	}
 
 	// 香を短く打つ場合
-	if (hand_count(ourHand, LANCE))
+	/*55 if (hand_count(ourHand, LANCE))
 	{
 		bb = pawnEffect(them, sq_king) & bb_drop;
 		if (bb)
@@ -757,7 +757,7 @@ Move is_mate_in_1ply_imp(const Position& pos)
 			SKIP_LANCE:;
 			}
 		}
-	}
+	}*/
 
 	// 角を短く打つ
 	if (hand_count(ourHand, BISHOP))
@@ -838,7 +838,7 @@ Move is_mate_in_1ply_imp(const Position& pos)
 SILVER_DROP_END:;
 
 	// 桂打ち
-	if (hand_count(ourHand, KNIGHT))
+	/*55 if (hand_count(ourHand, KNIGHT))
 	{
 		bb = knightEffect(them, sq_king) & bb_drop;
 
@@ -852,7 +852,7 @@ SILVER_DROP_END:;
 			if (can_piece_capture(pos, them, to, pinned, pos.pieces())) { continue; }
 			return make_move_drop(KNIGHT, to);
 		}
-	}
+	}*/
 
 	// -- 移動による1手詰め
 
@@ -1051,7 +1051,7 @@ SILVER_DROP_END:;
 	}
 
 	// 香の移動王手
-	bb = check_cand_bb(Us, PIECE_TYPE_CHECK_LANCE, sq_king) & pos.pieces(Us, LANCE);
+	/*55 bb = check_cand_bb(Us, PIECE_TYPE_CHECK_LANCE, sq_king) & pos.pieces(Us, LANCE);
 	while (bb)
 	{
 		from = bb.pop();
@@ -1088,7 +1088,7 @@ SILVER_DROP_END:;
 
 			// 敵陣で不成りで串刺しにする王手も入れなきゃ..
 		LANCE_NO_PRO:;
-			/*if ((Us == BLACK ? RANK3_BB : RANK7_BB) & to)
+			if ((Us == BLACK ? RANK3_BB : RANK7_BB) & to)
 			{
 				bb_attacks = lanceStepEffect(Us, to);
 				if (!(bb_attacks & sq_king)) { continue; }
@@ -1098,9 +1098,9 @@ SILVER_DROP_END:;
 				// 串刺しでの両王手はありえない
 				if (can_piece_capture(pos, them, to, pinned, slide)) { continue; }
 				return make_move(from, to);
-			}*/
+			}
 		}
-	}
+	}*/
 
 	// 離し角・飛車等で詰むかどうか。
 	// これ、レアケースなのでportingしてくるの面倒だし、判定できなくていいや。
@@ -1305,13 +1305,13 @@ SILVER_DROP_END:;
 						// ゆえに古いpinで考えておけばいいや。
 						if (can_piece_capture(pos, them, one, to, pinned, slide)) continue;
 
-						if (type_of(pos.piece_on(from)) == LANCE)
+						/*55 if (type_of(pos.piece_on(from)) == LANCE)
 						{
 							bb_attacks = rookStepEffect(to);
 							// 貫通で考えておこう。裏の退路もいけないので。
 							// 1升以上離れているので王手にするには不成りでいくしかなく、これは飛車利きに等しい
 						}
-						else if (canPromote(Us, from, to) || type_of(pos.piece_on(from)) == DRAGON)
+						else */if (canPromote(Us, from, to) || type_of(pos.piece_on(from)) == DRAGON)
 						{
 							bb_attacks = queenStepEffect(to);
 						}
@@ -1329,7 +1329,7 @@ SILVER_DROP_END:;
 						{
 							// これで詰みが確定した
 							// 香は不成りでの王手
-							if (type_of(pos.piece_on(from)) != LANCE && canPromote(Us, from, to) && !(pos.piece_on(from) & PIECE_PROMOTE))
+							if (/*55 type_of(pos.piece_on(from)) != LANCE && */canPromote(Us, from, to) && !(pos.piece_on(from) & PIECE_PROMOTE))
 								return make_move_promote(from, to);
 							else
 								return make_move(from, to);
@@ -1403,7 +1403,7 @@ NEXT1:;
 	// まあ、一応、やるだけやるか…。
 
 	bb = check_cand_bb(Us, PIECE_TYPE_CHECK_NON_SLIDER, sq_king)
-		& (pos.pieces(Us, GOLDS, SILVER, KNIGHT, PAWN));
+		& (pos.pieces(Us, GOLDS, SILVER, /*55 KNIGHT, */PAWN));
 	if (!bb)
 		goto DC_CHECK;
 
@@ -1486,7 +1486,7 @@ NEXT1:;
 	}
 
 	// 桂も成りと不成が選択できるので少し嫌らしい
-	bb = check_cand_bb(Us, PIECE_TYPE_CHECK_KNIGHT, sq_king)  & pos.pieces(Us, KNIGHT);
+	/*55 bb = check_cand_bb(Us, PIECE_TYPE_CHECK_KNIGHT, sq_king)  & pos.pieces(Us, KNIGHT);
 	while (bb)
 	{
 		from = bb.pop();
@@ -1529,7 +1529,7 @@ NEXT1:;
 			else if (can_piece_capture(pos, them, to, new_pin, slide)) { continue; }
 			return make_move_promote(from, to);
 		}
-	}
+	}*/
 
 	// 歩の移動による詰み
 	if (check_cand_bb(Us, PIECE_TYPE_CHECK_PAWN_WITH_NO_PRO, sq_king) & pos.pieces(Us, PAWN))
@@ -1628,7 +1628,7 @@ DC_CHECK:;
 				continue; // 香による両王手はない。
 
 			case KNIGHT:
-				if (!(check_around_bb(Us, KNIGHT, sq_king) & from)) continue;
+				/*55 if (!(check_around_bb(Us, KNIGHT, sq_king) & from)) continue;
 
 				bb = knightEffect(Us, from) &knightEffect(them, sq_king) & bb_move;
 				while (bb)
@@ -1655,7 +1655,7 @@ DC_CHECK:;
 					Bitboard slide = pos.pieces() ^ from;
 					if (can_king_escape_cangoto(pos, them, from, to, bb_attacks, slide)) { continue; }
 					return make_move_promote(from, to);
-				}
+				}*/
 
 				continue; // 気をつけろ！下に落ちたら死ぬぞ！
 
@@ -1867,10 +1867,10 @@ DC_CHECK:;
 
 			case KNIGHT:
 				// 成って詰みはあるか..それだけ見るか..
-				if (!((Us == BLACK ? RANK3_BB : RANK3_BB) & from))
+				/*55 if (!((Us == BLACK ? RANK3_BB : RANK3_BB) & from))
 					continue;
 
-				bb_attacks = knightEffect(Us, from) & ~goldEffect(them, sq_king);
+				bb_attacks = knightEffect(Us, from) & ~goldEffect(them, sq_king);*/
 				break;
 
 			case SILVER:

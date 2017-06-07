@@ -1,4 +1,4 @@
-﻿#include "../../shogi.h"
+#include "../../shogi.h"
 
 #ifdef YANEURAOU_2017_EARLY_ENGINE
 
@@ -975,14 +975,14 @@ namespace YaneuraOu2017Early
 		{
 			// 王手がかかってようがかかってまいが、宣言勝ちの判定は正しい。
 			// (トライルールのとき王手を回避しながら入玉することはありうるので)
-			Move m = pos.DeclarationWin();
+			/*55 Move m = pos.DeclarationWin();
 			if (m != MOVE_NONE)
 			{
 				bestValue = mate_in(ss->ply + 1); // 1手詰めなのでこの次のnodeで(指し手がなくなって)詰むという解釈
 				tte->save(posKey, value_to_tt(bestValue, ss->ply), BOUND_EXACT,
 					DEPTH_MAX, m, ss->staticEval, TT.generation());
 				return bestValue;
-			}
+			} 55将棋では入玉宣言勝ちなし */
 		}
 
 		// -----------------------
@@ -2461,7 +2461,7 @@ void Thread::search()
 						// MultiPVのときは最後の候補手を求めた直後とする。
 						// ただし、時間が3秒以上経過してからは、MultiPVのそれぞれの指し手ごと。
 						((PVIdx + 1 == multiPV || Time.elapsed() > 3000)
-						 && (rootDepth < 3 || 1/*lastInfoTime + pv_interval <= Time.elapsed()*/ )))
+						 && (rootDepth < 3 || lastInfoTime + pv_interval <= Time.elapsed() )))
 				{
 					// 検討モードのときは、stopのときには、PVを出力しないことにする。
 					if (!(Signals.stop && Limits.consideration_mode))
@@ -2631,13 +2631,13 @@ void MainThread::think()
 		// 宣言勝ちもあるのでこのは局面で1手勝ちならその指し手を選択
 		// 王手がかかっていても、回避しながらトライすることもあるので王手がかかっていようが
 		// Position::DeclarationWin()で判定して良い。
-		auto bestMove = rootPos.DeclarationWin();
+		/*55 auto bestMove = rootPos.DeclarationWin();
 		if (bestMove != MOVE_NONE)
 		{
 			// 宣言勝ちなのでroot movesの集合にはないかも知れない。強制的に書き換える。
 			rootMoves[0] = RootMove(bestMove);
 			goto ID_END;
-		}
+		} 5五将棋では入玉宣言勝ちなし */
 	}
 
 	// ---------------------

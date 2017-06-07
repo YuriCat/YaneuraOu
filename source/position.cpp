@@ -397,7 +397,7 @@ void Position::update_bitboards()
 	byTypeBB[HDK]			= pieces(KING , HORSE , DRAGON);
 
 	// 金と同じ移動特性を持つ駒
-	byTypeBB[GOLDS]			= pieces(GOLD , PRO_PAWN , PRO_LANCE , PRO_KNIGHT , PRO_SILVER);
+	byTypeBB[GOLDS]			= pieces(GOLD , PRO_PAWN , /*55 PRO_LANCE , PRO_KNIGHT , */PRO_SILVER);
 
 	// 以下、attackers_to()で頻繁に用いるのでここで1回計算しておいても、トータルでは高速化する。
 
@@ -501,7 +501,7 @@ Bitboard Position::slider_blockers(Color c, Square s , Bitboard& pinners) const 
 		( (pieces(ROOK_DRAGON)  & rookStepEffect(s))
 		| (pieces(BISHOP_HORSE) & bishopStepEffect(s))
 		// 香に関しては攻撃駒が先手なら、玉より下側をサーチして、そこにある先手の香を探す。
-		| (pieces(LANCE) & lanceStepEffect(~c, s))
+		/*55 | (pieces(LANCE) & lanceStepEffect(~c, s))*/
 		) & pieces(c);
 
 	while (snipers)
@@ -535,13 +535,13 @@ Bitboard Position::attackers_to(Color c, Square sq, const Bitboard& occ) const
 	// 香の利きを求めるコストが惜しいのでrookEffect()を利用する。
 	return
 		(     (pawnEffect(them, sq)		&  pieces(PAWN)        )
-			| (knightEffect(them, sq)	&  pieces(KNIGHT)      )
+			/*55 | (knightEffect(them, sq)	&  pieces(KNIGHT)      )*/
 			| (silverEffect(them, sq)	&  pieces(SILVER_HDK)  )
 			| (goldEffect(them, sq)		&  pieces(GOLDS_HDK)   )
 			| (bishopEffect(sq, occ)	&  pieces(BISHOP_HORSE))
 			| (rookEffect(sq, occ)		& (
 					pieces(ROOK_DRAGON)
-				|  (lanceStepEffect(them,sq) & pieces(LANCE))
+				/*55 |  (lanceStepEffect(them,sq) & pieces(LANCE))*/
 			  ))
 		//  | (kingEffect(sq) & pieces(c, HDK));
 		// →　HDKは、銀と金のところに含めることによって、参照するテーブルを一個減らして高速化しようというAperyのアイデア。
@@ -560,7 +560,7 @@ Bitboard Position::attackers_to(Square sq, const Bitboard& occ) const
 	return
 		// 先手の歩・桂・銀・金・HDK
 		((    (pawnEffect(WHITE, sq)   & pieces(PAWN)        )
-			| (knightEffect(WHITE, sq) & pieces(KNIGHT)      )
+			/*55 | (knightEffect(WHITE, sq) & pieces(KNIGHT)      )*/
 			| (silverEffect(WHITE, sq) & pieces(SILVER_HDK)  )
 			| (goldEffect(WHITE, sq)   & pieces(GOLDS_HDK)   )
 			) & pieces(BLACK))
@@ -568,7 +568,7 @@ Bitboard Position::attackers_to(Square sq, const Bitboard& occ) const
 
 		// 後手の歩・桂・銀・金・HDK
 		((    (pawnEffect(BLACK, sq)   & pieces(PAWN)        )
-			| (knightEffect(BLACK, sq) & pieces(KNIGHT)      )
+			/*55 | (knightEffect(BLACK, sq) & pieces(KNIGHT)      )*/
 			| (silverEffect(BLACK, sq) & pieces(SILVER_HDK)  )
 			| (goldEffect(BLACK, sq)   & pieces(GOLDS_HDK)   )
 			) & pieces(WHITE))
@@ -577,8 +577,8 @@ Bitboard Position::attackers_to(Square sq, const Bitboard& occ) const
 		| (bishopEffect(sq, occ) & pieces(BISHOP_HORSE) )
 		| (rookEffect(sq, occ) & (
 			   pieces(ROOK_DRAGON)
-			| (pieces(BLACK , LANCE) & lanceStepEffect(WHITE , sq))
-			| (pieces(WHITE , LANCE) & lanceStepEffect(BLACK , sq))
+			/*55 | (pieces(BLACK , LANCE) & lanceStepEffect(WHITE , sq))
+			| (pieces(WHITE , LANCE) & lanceStepEffect(BLACK , sq))*/
 			// 香も、StepEffectでマスクしたあと飛車の利きを使ったほうが香の利きを求めなくて済んで速い。
 			));
 }
@@ -599,8 +599,8 @@ inline Bitboard Position::attackers_to_pawn(Color c, Square pawn_sq) const
 	// sの地点に敵駒ptをおいて、その利きに自駒のptがあればsに利いているということだ。
 	// 打ち歩詰め判定なので、その打たれた歩を歩、香、王で取れることはない。(王で取れないことは事前にチェック済)
 	return
-		(     (knightEffect(them, pawn_sq) &  pieces(KNIGHT)          )
-			| (silverEffect(them, pawn_sq) & (pieces(SILVER) | bb_hd) )
+		(     /*55 (knightEffect(them, pawn_sq) &  pieces(KNIGHT)          )
+			|*/ (silverEffect(them, pawn_sq) & (pieces(SILVER) | bb_hd) )
 			| (goldEffect(them, pawn_sq)   & (pieces(GOLDS)  | bb_hd) )
 			| (bishopEffect(pawn_sq, occ)  &  pieces(BISHOP_HORSE)    )
 			| (rookEffect(pawn_sq, occ)    &  pieces(ROOK_DRAGON)     )
@@ -644,7 +644,7 @@ Bitboard Position::pinned_pieces(Color c, Square avoid) const {
 	pinners = (
 		  (pieces(ROOK_DRAGON)   & rookStepEffect(ksq))
 		| (pieces(BISHOP_HORSE)  & bishopStepEffect(ksq))
-		| (pieces(LANCE)         & lanceStepEffect(c, ksq))
+		/*55 | (pieces(LANCE)         & lanceStepEffect(c, ksq))*/
 		) & avoid_bb & pieces(~c);
 
 	while (pinners)
@@ -666,7 +666,7 @@ Bitboard Position::pinned_pieces(Color c, Square from, Square to) const {
 	pinners = (
 		(pieces(ROOK_DRAGON)    & rookStepEffect(ksq))
 		| (pieces(BISHOP_HORSE) & bishopStepEffect(ksq))
-		| (pieces(LANCE)        & lanceStepEffect(c, ksq))
+		/*55 | (pieces(LANCE)        & lanceStepEffect(c, ksq))*/
 		) & avoid_bb & pieces(~c);
 
 	// fromからは消えて、toの地点に駒が現れているものとして
@@ -900,7 +900,7 @@ bool Position::pseudo_legal_s(const Move m) const {
 				// 移動元と移動先がこれであるかぎり、それは桂の指し手生成によって生成されたものだから
 				// これが非合法手であることはない。
 
-				if (pt == PAWN || pt == LANCE)
+				if (pt == PAWN/*55 || pt == LANCE*/)
 					if ((us == BLACK && rank_of(to) == RANK_1) || (us == WHITE && rank_of(to) == RANK_5))
 						return false;
 			}
@@ -915,8 +915,8 @@ bool Position::pseudo_legal_s(const Move m) const {
 					break;
 
 				case LANCE:
-					if ((us == BLACK && rank_of(to) <= RANK_2) || (us == WHITE && rank_of(to) >= RANK_4))
-						return false;
+					/*55 if ((us == BLACK && rank_of(to) <= RANK_2) || (us == WHITE && rank_of(to) >= RANK_4))
+						return false;*/
 					break;
 
 				case BISHOP:
@@ -1624,11 +1624,11 @@ bool Position::pos_is_ok() const
 	// Bitboardの完全なテストには時間がかかるので、あまりややこしいテストは現実的ではない。
 
 #if 0
-	// 1) 盤上の駒と手駒を合わせて40駒あるか。
+	// 1) 盤上の駒と手駒を合わせて12駒あるか。
 	// →　駒落ちに対応させたいのでコメントアウト
 
 	// それぞれの駒のあるべき枚数
-	const int ptc0[KING] = { 2/*玉*/,18/*歩*/,4/*香*/,4/*桂*/,4/*銀*/,2/*角*/,2/*飛*/,4/*金*/ };
+	const int ptc0[KING] = { 2/*玉*/,2/*歩*/,0/*香*/,0/*桂*/,2/*銀*/,2/*角*/,2/*飛*/,2/*金*/ };
 	// カウント用の変数
 	int ptc[PIECE_WHITE] = { 0 };
 
@@ -1650,7 +1650,7 @@ bool Position::pos_is_ok() const
 			ptc[pr] += ct;
 		}
 
-	if (count != 40)
+	if (count != 12)
 		return false;
 
 	// 2) それぞれの駒の枚数は合っているか

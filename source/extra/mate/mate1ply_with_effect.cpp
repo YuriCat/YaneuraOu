@@ -337,8 +337,8 @@ MOVE_MATE:
         goto NextCandidate;
 
       // 香で2段目での成で詰まないなら不成で詰むことはない。(1手詰めにおいては)
-      if (pt == LANCE && (rank_of(to) == ((Us == BLACK) ? RANK_2 : RANK_4)))
-        goto NextCandidate;
+      /*55 if (pt == LANCE && (rank_of(to) == ((Us == BLACK) ? RANK_2 : RANK_4)))
+        goto NextCandidate;*/
     }
 
   NonProCheck2:;
@@ -349,8 +349,8 @@ MOVE_MATE:
   // 以下、同様。
 
     {
-      if (type_of(pc) == KNIGHT) // 13)
-        goto NextCandidate;
+      /*55 if (type_of(pc) == KNIGHT) // 13)
+        goto NextCandidate;*/
 
       if (discovered(from, to, ourKing, pinned))
         goto NextCandidate;

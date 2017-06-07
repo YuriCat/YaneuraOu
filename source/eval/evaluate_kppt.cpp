@@ -1,4 +1,4 @@
-﻿#include "../shogi.h"
+#include "../shogi.h"
 
 //
 // Apery WCSC26の評価関数バイナリを読み込むための仕組み。
@@ -145,6 +145,10 @@ kkp[f0 | r0][f1 | r1][st + (f2 | r2)][i]\
                             // 盤上の駒
                             Foo(f_pawn);
                             Foo(e_pawn);
+                            //Foo(f_lance);
+                            //Foo(e_lance);
+                            //Foo(f_knight);
+                            //Foo(e_knight);
                             Foo(f_silver);
                             Foo(e_silver);
                             Foo(f_gold);
