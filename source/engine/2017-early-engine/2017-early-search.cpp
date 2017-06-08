@@ -2814,8 +2814,14 @@ namespace Learner
 		{
 			Color us = pos.side_to_move();
 			int contempt = Options["Contempt"] * PawnValue / 100;
-			drawValueTable[REPETITION_DRAW][us] = VALUE_ZERO - Value(contempt);
-			drawValueTable[REPETITION_DRAW][~us] = VALUE_ZERO + Value(contempt);
+            if (contempt)
+            {
+                drawValueTable[REPETITION_DRAW][ us] = VALUE_ZERO - Value(contempt);
+                drawValueTable[REPETITION_DRAW][~us] = VALUE_ZERO + Value(contempt);
+            } else {
+                drawValueTable[REPETITION_DRAW][BLACK] = -VALUE_MATE;
+                drawValueTable[REPETITION_DRAW][WHITE] = VALUE_MATE;
+            }
 		}
 
 		// this_threadに関して。

@@ -103,7 +103,7 @@ private:
 //     角      8bit* 2駒   = 16bit
 //     飛      8bit* 2駒   = 16bit
 //                          -------
-//                          241bit + 1bit(手番) + 7bit×2(王の位置先後) = 256bit
+//                          241bit + 1bit(手番) + 7bit×2(王の位置先後) = 92bit
 //
 // 盤上の駒が手駒に移動すると盤上の駒が空になるので盤上のその升は1bitで表現でき、
 // 手駒は、盤上の駒より1bit少なく表現できるので結局、全体のbit数に変化はない。
@@ -130,19 +130,19 @@ HuffmanedPiece huffman_table[] =
 };
 
 // sfenを圧縮/解凍するためのクラス
-// sfenはハフマン符号化をすることで256bit(32bytes)にpackできる。
+// sfenはハフマン符号化をすることで92bit(12bytes)にpackできる。
 // このことはなのはminiにより証明された。上のハフマン符号化である。
 //
 // 内部フォーマット = 手番1bit+王の位置7bit*2 + 盤上の駒(ハフマン符号化) + 手駒(ハフマン符号化)
 //
 struct SfenPacker
 {
-  // sfenをpackしてdata[32]に格納する。
+  // sfenをpackしてdata[12]に格納する。
   void pack(const Position& pos)
   {
 //    cout << pos;
 
-    memset(data, 0, 32 /* 256bit */);
+    memset(data, 0, 12 /* 96bit */);
     stream.set_data(data);
 
     // 手番
@@ -175,18 +175,21 @@ struct SfenPacker
 
     // 綺麗に書けた..気がする。
 
-    // 全部で256bitのはず。(普通の盤面であれば)
-    ASSERT_LV3(stream.get_cursor() == 256);
+    // 全部で92bitのはず。(普通の盤面であれば)
+    // std::cerr << stream.get_cursor() << endl;
+      stream.write_n_bit(0, 4);
+    ASSERT_LV3(stream.get_cursor() == 92);
+      
   }
 
-  // data[32]をsfen化して返す。
+  // data[12]をsfen化して返す。
   string unpack()
   {
     stream.set_data(data);
 
     // 盤上の SQ_NB 升
     Piece board[SQ_NB];
-    memset(board, 0, sizeof(Piece)*SQ_NB);
+    memset(board, 0, sizeof(Piece)*(int)SQ_NB);
 
     // 手番
     Color turn = (Color)stream.read_one_bit();
@@ -206,14 +209,14 @@ struct SfenPacker
 
       //cout << sq << ' ' << board[sq] << ' ' << stream.get_cursor() << endl;
 
-      ASSERT_LV3(stream.get_cursor() <= 256);
+      ASSERT_LV3(stream.get_cursor() <= 92);
     }
 
     // 手駒
     Hand hand[2] = { HAND_ZERO,HAND_ZERO };
-    while (stream.get_cursor() != 256)
+    while (stream.get_cursor() != 92)
     {
-      // 256になるまで手駒が格納されているはず
+      // 92になるまで手駒が格納されているはず
       auto pc = read_hand_piece_from_stream();
       add_hand(hand[(int)color_of(pc)], type_of(pc));
     }
@@ -225,12 +228,12 @@ struct SfenPacker
     return Position::sfen_from_rawdata(board, hand, turn, 0);
   }
 
-  // pack()でpackされたsfen(256bit = 32bytes)
+  // pack()でpackされたsfen(96bit = 12bytes)
   // もしくはunpack()でdecodeするsfen
-  u8 *data; // u8[32];
+  u8 *data; // u8[12];
 
 //private:
-  // Position::set_from_packed_sfen(u8 data[32])でこれらの関数を使いたいので筋は悪いがpublicにしておく。
+  // Position::set_from_packed_sfen(u8 data[12])でこれらの関数を使いたいので筋は悪いがpublicにしておく。
 
   BitStream stream;
 
@@ -404,7 +407,7 @@ void Position::set_from_packed_sfen(const PackedSfen& sfen)
 
 		//cout << sq << ' ' << board[sq] << ' ' << stream.get_cursor() << endl;
 
-		ASSERT_LV3(stream.get_cursor() <= 256);
+		ASSERT_LV3(stream.get_cursor() <= 92);
 	}
 
 	// 手駒
@@ -414,9 +417,9 @@ void Position::set_from_packed_sfen(const PackedSfen& sfen)
 	int i = 0;
 	Piece lastPc = NO_PIECE;
 #endif
-	while (stream.get_cursor() != 256)
+	while (stream.get_cursor() != 92)
 	{
-		// 256になるまで手駒が格納されているはず
+		// 92になるまで手駒が格納されているはず
 		auto pc = packer.read_hand_piece_from_stream();
 		add_hand(hand[(int)color_of(pc)], type_of(pc));
 
@@ -468,8 +471,8 @@ std::string Position::sfen_from_rawdata(Piece board[SQ_NB], Hand hands[COLOR_NB]
   // これで正常に変換されるのでは…。
   Position pos;
 
-  memcpy(pos.board, board, sizeof(Piece) * SQ_NB);
-  memcpy(pos.hand, hands, sizeof(Hand) * COLOR_NB);
+  memcpy(pos.board, board, sizeof(Piece) * (int)SQ_NB);
+  memcpy(pos.hand, hands, sizeof(Hand) * (int)COLOR_NB);
   pos.sideToMove = turn;
   pos.gamePly = gamePly_;
 

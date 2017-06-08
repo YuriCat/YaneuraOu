@@ -151,7 +151,7 @@ struct StateInfo
 // --------------------
 
 // packされたsfen
-struct PackedSfen { u8 data[32]; };
+struct PackedSfen { u8 data[12]; };
 
 // 盤面
 struct Position

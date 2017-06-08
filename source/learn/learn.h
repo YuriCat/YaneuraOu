@@ -1,4 +1,4 @@
-﻿#ifndef _LEARN_H_
+#ifndef _LEARN_H_
 #define _LEARN_H_
 
 #include "../shogi.h"
@@ -210,13 +210,13 @@ namespace Learner
 
 		// この局面の手番側が、ゲームを最終的に勝っているならtrue。負けているならfalse。
 		// 引き分けに至った場合は、局面自体書き出さない。
-		bool isWin;
+		s8 isWin;
 
 		// 教師局面を書き出したファイルを他の人とやりとりするときに
-		// この構造体サイズが不定だと困るため、paddingしてどの環境でも必ず40bytesになるようにしておく。
+		// この構造体サイズが不定だと困るため、paddingしてどの環境でも必ず20bytesになるようにしておく。
 		u8 padding;
 
-		// 32 + 2 + 2 + 2 + 1 + 1 = 40bytes
+		// 12 + 2 + 2 + 2 + 1 + 1 = 20bytes
 	};
 }
 
