@@ -1,5 +1,5 @@
-#ifndef EVALUATE_H
-#define EVALUATE_H
+﻿#ifndef EVALUATE99_H
+#define EVALUATE99_H
 
 #include "shogi.h"
 
@@ -16,12 +16,13 @@
 #else
 #define BonaPieceExpansion 0
 #endif
-#include "evaluate99.h"
+
+
 // --------------------
 //    評価関数
 // --------------------
 
-namespace Eval {
+namespace Eval99 {
 
 	// evaluateの起動時に行なう軽量な初期化はここで行なう。
 	extern void init();
@@ -162,16 +163,16 @@ namespace Eval {
 #if defined (EVAL_MATERIAL) || defined (EVAL_PP) || defined(EVAL_KPP)
 
 		f_hand_pawn = BONA_PIECE_ZERO + 1,
-		e_hand_pawn = f_hand_pawn + 2,
-		f_hand_lance = e_hand_pawn + 2,
-		e_hand_lance = f_hand_lance + 0,
-		f_hand_knight = e_hand_lance + 0,
-		e_hand_knight = f_hand_knight + 0,
-		f_hand_silver = e_hand_knight + 0,
-		e_hand_silver = f_hand_silver + 2,
-		f_hand_gold = e_hand_silver + 2,
-		e_hand_gold = f_hand_gold + 2,
-		f_hand_bishop = e_hand_gold + 2,
+		e_hand_pawn = f_hand_pawn + 18,
+		f_hand_lance = e_hand_pawn + 18,
+		e_hand_lance = f_hand_lance + 4,
+		f_hand_knight = e_hand_lance + 4,
+		e_hand_knight = f_hand_knight + 4,
+		f_hand_silver = e_hand_knight + 4,
+		e_hand_silver = f_hand_silver + 4,
+		f_hand_gold = e_hand_silver + 4,
+		e_hand_gold = f_hand_gold + 4,
+		f_hand_bishop = e_hand_gold + 4,
 		e_hand_bishop = f_hand_bishop + 2,
 		f_hand_rook = e_hand_bishop + 2,
 		e_hand_rook = f_hand_rook + 2,
@@ -182,20 +183,20 @@ namespace Eval {
 		// 定数自体は1枚目の駒のindexなので、KPPの時と同様の処理で問題ない。
 
 		f_hand_pawn = BONA_PIECE_ZERO + 1,//0//0+1
-		e_hand_pawn = 3 + 1,//f_hand_pawn + 3,//2+1
-		f_hand_lance = 6 + 1,//e_hand_pawn + 3,//4+1
-		e_hand_lance = 6 + 1,//f_hand_lance + 5,//43+1
-		f_hand_knight = 6 + 1,//e_hand_lance + 5,//48+1
-		e_hand_knight = 6 + 1,//f_hand_knight + 5,//53+1
-		f_hand_silver = 6 + 1,//e_hand_pawn + 5,//58+1
-		e_hand_silver = 9 + 1,//f_hand_silver + 5,//63+1
-		f_hand_gold = 12 + 1,//e_hand_silver + 5,//68+1
-		e_hand_gold = 15 + 1,//f_hand_gold + 5,//73+1
-		f_hand_bishop = 18 + 1,//e_hand_gold + 5,//78+1
-		e_hand_bishop = 21 + 1,//f_hand_bishop + 3,//81+1
-		f_hand_rook = 24 + 1,//e_hand_bishop + 3,//84+1
-		e_hand_rook = 27 + 1,//f_hand_rook + 3,//87+1
-		fe_hand_end = 30,//e_hand_rook + 3,//90
+		e_hand_pawn = 20,//f_hand_pawn + 19,//19+1
+		f_hand_lance = 39,//e_hand_pawn + 19,//38+1
+		e_hand_lance = 44,//f_hand_lance + 5,//43+1
+		f_hand_knight = 49,//e_hand_lance + 5,//48+1
+		e_hand_knight = 54,//f_hand_knight + 5,//53+1
+		f_hand_silver = 59,//e_hand_knight + 5,//58+1
+		e_hand_silver = 64,//f_hand_silver + 5,//63+1
+		f_hand_gold = 69,//e_hand_silver + 5,//68+1
+		e_hand_gold = 74,//f_hand_gold + 5,//73+1
+		f_hand_bishop = 79,//e_hand_gold + 5,//78+1
+		e_hand_bishop = 82,//f_hand_bishop + 3,//81+1
+		f_hand_rook = 85,//e_hand_bishop + 3,//84+1
+		e_hand_rook = 88,//f_hand_rook + 3,//87+1
+		fe_hand_end = 90,//e_hand_rook + 3,//90
 
 #endif                     
 
@@ -205,24 +206,24 @@ namespace Eval {
 
 		// --- 盤上の駒
 		f_pawn = fe_hand_end,
-		e_pawn = f_pawn + 25,
-		f_lance = e_pawn + 0,
-		e_lance = f_lance + 0,
-		f_knight = e_lance + 0,
-		e_knight = f_knight + 0,
-		f_silver = e_knight + 25,
-		e_silver = f_silver + 25,
-		f_gold = e_silver + 25,
-		e_gold = f_gold + 25,
-		f_bishop = e_gold + 25,
-		e_bishop = f_bishop + 25,
-		f_horse = e_bishop + 25,
-		e_horse = f_horse + 25,
-		f_rook = e_horse + 25,
-		e_rook = f_rook + 25,
-		f_dragon = e_rook + 25,
-		e_dragon = f_dragon + 25,
-		fe_old_end = e_dragon + 25,
+		e_pawn = f_pawn + 81,
+		f_lance = e_pawn + 81,
+		e_lance = f_lance + 81,
+		f_knight = e_lance + 81,
+		e_knight = f_knight + 81,
+		f_silver = e_knight + 81,
+		e_silver = f_silver + 81,
+		f_gold = e_silver + 81,
+		e_gold = f_gold + 81,
+		f_bishop = e_gold + 81,
+		e_bishop = f_bishop + 81,
+		f_horse = e_bishop + 81,
+		e_horse = f_horse + 81,
+		f_rook = e_horse + 81,
+		e_rook = f_rook + 81,
+		f_dragon = e_rook + 81,
+		e_dragon = f_dragon + 81,
+		fe_old_end = e_dragon + 81,
 
 		// fe_endの値をBonaPieceExpansionを定義することで変更できる。
 		// このときfe_old_end～fe_endの間の番号をBonaPiece拡張領域として自由に用いることが出来る。
@@ -233,8 +234,8 @@ namespace Eval {
 
 		// 王も一意な駒番号を付与。これは2駒関係をするときに王に一意な番号が必要なための拡張
 		f_king = fe_end,
-		e_king = f_king + SQ_NB,
-		fe_end2 = e_king + SQ_NB, // 玉も含めた末尾の番号。
+		e_king = f_king + 81,
+		fe_end2 = e_king + 81, // 玉も含めた末尾の番号。
 
 		// 末尾は評価関数の性質によって異なるので、BONA_PIECE_NBを定義するわけにはいかない。
 	};
@@ -374,4 +375,4 @@ namespace Eval {
 #endif
 }
 
-#endif // #ifndef EVALUATE_H
+#endif // #ifndef EVALUATE99_H

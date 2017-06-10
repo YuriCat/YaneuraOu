@@ -49,9 +49,9 @@ namespace Eval
 	ValueKpp(*kpp_)[SQ_NB][fe_end][fe_end];
 	ValueKkp(*kkp_)[SQ_NB][SQ_NB][fe_end];
     
-    ValueKk(*kk99_)[SQ_NB][SQ_NB];
-    ValueKpp(*kpp99_)[SQ_NB][fe_end][fe_end];
-    ValueKkp(*kkp99_)[SQ_NB][SQ_NB][fe_end];
+    ValueKk(*kk99_)[81][81];
+    ValueKpp(*kpp99_)[81][Eval99::fe_end][Eval99::fe_end];
+    ValueKkp(*kkp99_)[81][81][Eval99::fe_end];
 
 #else
 
@@ -61,9 +61,9 @@ namespace Eval
 	ALIGNED(32) ValueKpp kpp[SQ_NB][fe_end][fe_end];
 	ALIGNED(32) ValueKkp kkp[SQ_NB][SQ_NB][fe_end];
     
-    ALIGNED(32) ValueKk kk99[SQ_NB][SQ_NB];
-    ALIGNED(32) ValueKpp kpp99[SQ_NB][fe_end][fe_end];
-    ALIGNED(32) ValueKkp kkp99[SQ_NB][SQ_NB][fe_end];
+    ALIGNED(32) ValueKk kk99[81][81];
+    ALIGNED(32) ValueKpp kpp99[81][Eval99::fe_end][Eval99::fe_end];
+    ALIGNED(32) ValueKkp kkp99[81][81][Eval99::fe_end];
 
 #endif
 
@@ -117,10 +117,73 @@ namespace Eval
                     }
                 }
             }
-#define Foo(st) for(Rank r2 = RANK_1; r2 <= RANK_5; ++r2){\
+            
+            const std::vector<BonaPiece> hbp = {
+                f_hand_pawn,
+                e_hand_pawn,
+                f_hand_silver,
+                e_hand_silver,
+                f_hand_gold,
+                e_hand_gold,
+                f_hand_bishop,
+                e_hand_bishop,
+                f_hand_rook,
+                e_hand_rook,
+                BonaPiece(fe_hand_end + 1)
+            };
+            
+            const std::vector<Eval99::BonaPiece> ohbp = {
+                Eval99::f_hand_pawn,
+                Eval99::e_hand_pawn,
+                Eval99::f_hand_silver,
+                Eval99::e_hand_silver,
+                Eval99::f_hand_gold,
+                Eval99::e_hand_gold,
+                Eval99::f_hand_bishop,
+                Eval99::e_hand_bishop,
+                Eval99::f_hand_rook,
+                Eval99::e_hand_rook,
+                Eval99::BonaPiece(Eval99::fe_hand_end + 1)
+            };
+            
+            const std::vector<BonaPiece> bp = {
+                f_pawn,
+                e_pawn,
+                f_silver,
+                e_silver,
+                f_gold,
+                e_gold,
+                f_bishop,
+                e_bishop,
+                f_horse,
+                e_horse,
+                f_rook,
+                e_rook,
+                f_dragon,
+                e_dragon
+            };
+            
+            const std::vector<Eval99::BonaPiece> obp = {
+                Eval99::f_pawn,
+                Eval99::e_pawn,
+                Eval99::f_silver,
+                Eval99::e_silver,
+                Eval99::f_gold,
+                Eval99::e_gold,
+                Eval99::f_bishop,
+                Eval99::e_bishop,
+                Eval99::f_horse,
+                Eval99::e_horse,
+                Eval99::f_rook,
+                Eval99::e_rook,
+                Eval99::f_dragon,
+                Eval99::e_dragon
+            };
+            
+#define FooKKP(st, nst) for(Rank r2 = RANK_1; r2 <= RANK_5; ++r2){\
 for(File f2 = FILE_1; f2 <= FILE_5; ++f2){\
 for(int i = 0; i < 2; ++i){\
-kkp[f0 | r0][f1 | r1][st + (f2 | r2)][i]\
+kkp[f0 | r0][f1 | r1][nst + (f2 | r2)][i]\
 =((int)kkp99[f0       | r0      ][f1       | r1      ][st + (f2       | r2      )][i]\
 + (int)kkp99[(4 + f0) | r0      ][(4 + f1) | r1      ][st + ((4 + f2) | r2      )][i]\
 + (int)kkp99[f0       | (4 + r0)][f1       | (4 + r1)][st + (f2       | (4 + r2))][i]\
@@ -128,72 +191,58 @@ kkp[f0 | r0][f1 | r1][st + (f2 | r2)][i]\
 + (int)kkp99[(8 - f0) | r0      ][(8 - f1) | r1      ][st + ((8 - f2) | r2      )][i]\
 + (int)kkp99[(4 - f0) | r0      ][(4 - f1) | r1      ][st + ((4 - f2) | r2      )][i]\
 + (int)kkp99[(8 - f0) | (4 + r0)][(8 - f1) | (4 + r1)][st + ((8 - f2) | (4 + r2))][i]\
-+ (int)kkp99[(4 - f0) | (4 + r0)][(4 - f1) | (4 + r1)][st + ((4 - f2) | (4 + r2))][i]) / 8;\
-}}}
++ (int)kkp99[(4 - f0) | (4 + r0)][(4 - f1) | (4 + r1)][st + ((4 - f2) | (4 + r2))][i]) / 8;}}}
+            
+#define FooKKH for (int i = 0; i < 2; ++i) {\
+kkp[f0 | r0][f1 | r1][np0][i]\
+=((int)kkp99[f0       | r0      ][f1       | r1      ][p0][i]\
++ (int)kkp99[(4 + f0) | r0      ][(4 + f1) | r1      ][p0][i]\
++ (int)kkp99[f0       | (4 + r0)][f1       | (4 + r1)][p0][i]\
++ (int)kkp99[(4 + f0) | (4 + r0)][(4 + f1) | (4 + r1)][p0][i]\
++ (int)kkp99[(8 - f0) | r0      ][(8 - f1) | r1      ][p0][i]\
++ (int)kkp99[(4 - f0) | r0      ][(4 - f1) | r1      ][p0][i]\
++ (int)kkp99[(8 - f0) | (4 + r0)][(8 - f1) | (4 + r1)][p0][i]\
++ (int)kkp99[(4 - f0) | (4 + r0)][(4 - f1) | (4 + r1)][p0][i]) / 8;}
+            
             memset(kkp, 0, sizeof(kkp));
             for (Rank r0 = RANK_1; r0 <= RANK_5; ++r0) {
                 for (File f0 = FILE_1; f0 <= FILE_5; ++f0) {
                     for (Rank r1 = RANK_1; r1 <= RANK_5; ++r1) {
                         for (File f1 = FILE_1; f1 <= FILE_5; ++f1) {
                             // 手駒
-                            for (BonaPiece p = BONA_PIECE_ZERO; p < fe_hand_end; ++p) {
-                                for (int i = 0; i < 2; ++i) {
-                                    kkp[f0 | r0][f1 | r1][p][i]
-                                    =  ((int)kkp99[f0       | r0      ][f1       | r1      ][p][i]
-                                      + (int)kkp99[(4 + f0) | r0      ][(4 + f1) | r1      ][p][i]
-                                      + (int)kkp99[f0       | (4 + r0)][f1       | (4 + r1)][p][i]
-                                      + (int)kkp99[(4 + f0) | (4 + r0)][(4 + f1) | (4 + r1)][p][i]
-                                      + (int)kkp99[(8 - f0) | r0      ][(8 - f1) | r1      ][p][i]
-                                      + (int)kkp99[(4 - f0) | r0      ][(4 - f1) | r1      ][p][i]
-                                      + (int)kkp99[(8 - f0) | (4 + r0)][(8 - f1) | (4 + r1)][p][i]
-                                      + (int)kkp99[(4 - f0) | (4 + r0)][(4 - f1) | (4 + r1)][p][i]) / 8;
+                            for (int k = 0; k < (int)hbp.size() - 1; ++k) {
+                                for (BonaPiece np0 = hbp[k] - 1; np0 < hbp[k + 1] - 1; ++np0) {
+                                    Eval99::BonaPiece p0 = Eval99::BonaPiece(np0 - hbp[k] + ohbp[k]);
+                                    FooKKH;
                                 }
                             }
+                            
                             // 盤上の駒
-                            Foo(f_pawn);
-                            Foo(e_pawn);
-                            //Foo(f_lance);
-                            //Foo(e_lance);
-                            //Foo(f_knight);
-                            //Foo(e_knight);
-                            Foo(f_silver);
-                            Foo(e_silver);
-                            Foo(f_gold);
-                            Foo(e_gold);
-                            Foo(f_bishop);
-                            Foo(e_bishop);
-                            Foo(f_horse);
-                            Foo(e_horse);
-                            Foo(f_rook);
-                            Foo(e_rook);
-                            Foo(f_dragon);
-                            Foo(e_dragon);
+                            for (int k = 0; k < (int)bp.size(); ++k) {
+                                FooKKP(obp[k], bp[k]);
+                            }
                         }
                     }
                 }
             }
-#undef Foo
-            
-#define Foo(stb, st) for (Rank r1 = RANK_1; r1 <= RANK_5; ++r1) {\
-for (File f1 = FILE_1; f1 <= FILE_5; ++f1) {\
-for (Rank r2 = RANK_1; r2 <= RANK_5; ++r2) {\
+#undef FooKKH
+#undef FooKKP
+                   
+#define FooKHH for (int i = 0; i < 2; ++i) {\
+kpp[f0 | r0][np0][np1][i]\
+=  ((int)kpp99[f0       | r0      ][p0][p1][i]\
++ (int)kpp99[(4 + f0) | r0      ][p0][p1][i]\
++ (int)kpp99[f0       | (4 + r0)][p0][p1][i]\
++ (int)kpp99[(4 + f0) | (4 + r0)][p0][p1][i]\
++ (int)kpp99[(8 - f0) | r0      ][p0][p1][i]\
++ (int)kpp99[(4 - f0) | r0      ][p0][p1][i]\
++ (int)kpp99[(8 - f0) | (4 + r0)][p0][p1][i]\
++ (int)kpp99[(4 - f0) | (8 + r0)][p0][p1][i]) / 8;}
+                   
+#define FooKHP(st, nst) for (Rank r2 = RANK_1; r2 <= RANK_5; ++r2) {\
 for (File f2 = FILE_1; f2 <= FILE_5; ++f2) {\
 for (int i = 0; i < 2; ++i) {\
-kpp[f0 | r0][stb + (f1 | r1)][st + (f2 | r2)][i]\
-=((int)kpp99[f0       | r0      ][stb + (f1       | r1      )][st + (f2       | r2      )][i]\
-+ (int)kpp99[(4 + f0) | r0      ][stb + ((4 + f1) | r1      )][st + ((4 + f2) | r2      )][i]\
-+ (int)kpp99[f0       | (4 + r0)][stb + (f1       | (4 + r1))][st + (f2       | (4 + r2))][i]\
-+ (int)kpp99[(4 + f0) | (4 + r0)][stb + ((4 + f1) | (4 + r1))][st + ((4 + f2) | (4 + r2))][i]\
-+ (int)kpp99[(8 - f0) | r0      ][stb + ((8 - f1) | r1      )][st + ((8 - f2) | r2      )][i]\
-+ (int)kpp99[(4 - f0) | r0      ][stb + ((4 - f1) | r1      )][st + ((4 - f2) | r2      )][i]\
-+ (int)kpp99[(8 - f0) | (4 + r0)][stb + ((8 - f1) | (4 + r1))][st + ((8 - f2) | (4 + r2))][i]\
-+ (int)kpp99[(4 - f0) | (4 + r0)][stb + ((4 - f1) | (4 + r1))][st + ((4 - f2) | (4 + r2))][i]) / 8;\
-}}}}}
-            
-#define FooH(st) for (Rank r2 = RANK_1; r2 <= RANK_5; ++r2) {\
-for (File f2 = FILE_1; f2 <= FILE_5; ++f2) {\
-for (int i = 0; i < 2; ++i) {\
-kpp[f0 | r0][p0][st + (f2 | r2)][i]\
+kpp[f0 | r0][np0][nst + (f2 | r2)][i]\
 =((int)kpp99[f0       | r0      ][p0][st + (f2       | r2      )][i]\
 + (int)kpp99[(4 + f0) | r0      ][p0][st + ((4 + f2) | r2      )][i]\
 + (int)kpp99[f0       | (4 + r0)][p0][st + (f2       | (4 + r2))][i]\
@@ -202,7 +251,7 @@ kpp[f0 | r0][p0][st + (f2 | r2)][i]\
 + (int)kpp99[(4 - f0) | r0      ][p0][st + ((4 - f2) | r2      )][i]\
 + (int)kpp99[(8 - f0) | (4 + r0)][p0][st + ((8 - f2) | (4 + r2))][i]\
 + (int)kpp99[(4 - f0) | (4 + r0)][p0][st + ((4 - f2) | (4 + r2))][i]) / 8;\
-kpp[f0 | r0][st + (f2 | r2)][p0][i]\
+kpp[f0 | r0][nst + (f2 | r2)][np0][i]\
 =((int)kpp99[f0       | r0      ][st + (f2       | r2      )][p0][i]\
 + (int)kpp99[(4 + f0) | r0      ][st + ((4 + f2) | r2      )][p0][i]\
 + (int)kpp99[f0       | (4 + r0)][st + (f2       | (4 + r2))][p0][i]\
@@ -210,242 +259,57 @@ kpp[f0 | r0][st + (f2 | r2)][p0][i]\
 + (int)kpp99[(8 - f0) | r0      ][st + ((8 - f2) | r2      )][p0][i]\
 + (int)kpp99[(4 - f0) | r0      ][st + ((4 - f2) | r2      )][p0][i]\
 + (int)kpp99[(8 - f0) | (4 + r0)][st + ((8 - f2) | (4 + r2))][p0][i]\
-+ (int)kpp99[(4 - f0) | (4 + r0)][st + ((4 - f2) | (4 + r2))][p0][i]) / 8;\
-}}}
++ (int)kpp99[(4 - f0) | (4 + r0)][st + ((4 - f2) | (4 + r2))][p0][i]) / 8;}}}
             
+#define FooKPP(stb, st, nstb, nst) for (Rank r1 = RANK_1; r1 <= RANK_5; ++r1) {\
+for (File f1 = FILE_1; f1 <= FILE_5; ++f1) {\
+for (Rank r2 = RANK_1; r2 <= RANK_5; ++r2) {\
+for (File f2 = FILE_1; f2 <= FILE_5; ++f2) {\
+for (int i = 0; i < 2; ++i) {\
+kpp[f0 | r0][nstb + (f1 | r1)][nst + (f2 | r2)][i]\
+=((int)kpp99[f0       | r0      ][stb + (f1       | r1      )][st + (f2       | r2      )][i]\
++ (int)kpp99[(4 + f0) | r0      ][stb + ((4 + f1) | r1      )][st + ((4 + f2) | r2      )][i]\
++ (int)kpp99[f0       | (4 + r0)][stb + (f1       | (4 + r1))][st + (f2       | (4 + r2))][i]\
++ (int)kpp99[(4 + f0) | (4 + r0)][stb + ((4 + f1) | (4 + r1))][st + ((4 + f2) | (4 + r2))][i]\
++ (int)kpp99[(8 - f0) | r0      ][stb + ((8 - f1) | r1      )][st + ((8 - f2) | r2      )][i]\
++ (int)kpp99[(4 - f0) | r0      ][stb + ((4 - f1) | r1      )][st + ((4 - f2) | r2      )][i]\
++ (int)kpp99[(8 - f0) | (4 + r0)][stb + ((8 - f1) | (4 + r1))][st + ((8 - f2) | (4 + r2))][i]\
++ (int)kpp99[(4 - f0) | (4 + r0)][stb + ((4 - f1) | (4 + r1))][st + ((4 - f2) | (4 + r2))][i]) / 8;}}}}}
             
+
+
             memset(kpp, 0, sizeof(kpp));
             for (Rank r0 = RANK_1; r0 <= RANK_5; ++r0) {
                 for (File f0 = FILE_1; f0 <= FILE_5; ++f0) {
                     // 手駒同士
-                    for (BonaPiece p0 = BONA_PIECE_ZERO; p0 < fe_hand_end; ++p0) {
-                        for (BonaPiece p1 = BONA_PIECE_ZERO; p1 < fe_hand_end; ++p1) {
-                            for (int i = 0; i < 2; ++i) {
-                                kpp[f0 | r0][p0][p1][i]
-                                =  ((int)kpp99[f0       | r0      ][p0][p1][i]
-                                  + (int)kpp99[(4 + f0) | r0      ][p0][p1][i]
-                                  + (int)kpp99[f0       | (4 + r0)][p0][p1][i]
-                                  + (int)kpp99[(4 + f0) | (4 + r0)][p0][p1][i]
-                                  + (int)kpp99[(8 - f0) | r0      ][p0][p1][i]
-                                  + (int)kpp99[(4 - f0) | r0      ][p0][p1][i]
-                                  + (int)kpp99[(8 - f0) | (4 + r0)][p0][p1][i]
-                                  + (int)kpp99[(4 - f0) | (8 + r0)][p0][p1][i]) / 8;
+                    for (int k = 0; k < (int)hbp.size() - 1; ++k) {
+                        for (int l = 0; l < (int)hbp.size() - 1; ++l) {
+                            for (BonaPiece np0 = hbp[k] - 1; np0 < hbp[k + 1] - 1; ++np0) {
+                                for (BonaPiece np1 = hbp[l] - 1; np1 < hbp[l + 1] - 1; ++np1) {
+                                    Eval99::BonaPiece p0 = Eval99::BonaPiece(np0 - hbp[k] + ohbp[k]);
+                                    Eval99::BonaPiece p1 = Eval99::BonaPiece(np1 - hbp[l] + ohbp[l]);
+                                    
+                                    FooKHH;
+                                }
                             }
                         }
                     }
                     // 手駒x盤上の駒
-                    for (BonaPiece p0 = BONA_PIECE_ZERO; p0 < fe_hand_end; ++p0) {
-                        FooH(f_pawn);
-                        FooH(e_pawn);
-                        FooH(f_silver);
-                        FooH(e_silver);
-                        FooH(f_gold);
-                        FooH(e_gold);
-                        FooH(f_bishop);
-                        FooH(e_bishop);
-                        FooH(f_horse);
-                        FooH(e_horse);
-                        FooH(f_rook);
-                        FooH(e_rook);
-                        FooH(f_dragon);
-                        FooH(e_dragon);
+                    for (int k = 0; k < (int)hbp.size() - 1; ++k) {
+                        for (int l = 0; l < (int)bp.size(); ++l) {
+                            for (BonaPiece np0 = hbp[k] - 1; np0 < hbp[k + 1] - 1; ++np0) {
+                                Eval99::BonaPiece p0 = Eval99::BonaPiece(np0 - hbp[k] + ohbp[k]);
+                                FooKHP(obp[l], bp[l]);
+                            }
+                        }
                     }
                     
                     // 盤上の駒同士
-                    Foo(f_pawn, f_pawn);
-                    Foo(f_pawn, e_pawn);
-                    Foo(f_pawn, f_silver);
-                    Foo(f_pawn, e_silver);
-                    Foo(f_pawn, f_gold);
-                    Foo(f_pawn, e_gold);
-                    Foo(f_pawn, f_bishop);
-                    Foo(f_pawn, e_bishop);
-                    Foo(f_pawn, f_horse);
-                    Foo(f_pawn, e_horse);
-                    Foo(f_pawn, f_rook);
-                    Foo(f_pawn, e_rook);
-                    Foo(f_pawn, f_dragon);
-                    Foo(f_pawn, e_dragon);
-                    
-                    Foo(e_pawn, f_pawn);
-                    Foo(e_pawn, e_pawn);
-                    Foo(e_pawn, f_silver);
-                    Foo(e_pawn, e_silver);
-                    Foo(e_pawn, f_gold);
-                    Foo(e_pawn, e_gold);
-                    Foo(e_pawn, f_bishop);
-                    Foo(e_pawn, e_bishop);
-                    Foo(e_pawn, f_horse);
-                    Foo(e_pawn, e_horse);
-                    Foo(e_pawn, f_rook);
-                    Foo(e_pawn, e_rook);
-                    Foo(e_pawn, f_dragon);
-                    Foo(e_pawn, e_dragon);
-                    
-                    Foo(f_silver, f_pawn);
-                    Foo(f_silver, e_pawn);
-                    Foo(f_silver, f_silver);
-                    Foo(f_silver, e_silver);
-                    Foo(f_silver, f_gold);
-                    Foo(f_silver, e_gold);
-                    Foo(f_silver, f_bishop);
-                    Foo(f_silver, e_bishop);
-                    Foo(f_silver, f_horse);
-                    Foo(f_silver, e_horse);
-                    Foo(f_silver, f_rook);
-                    Foo(f_silver, e_rook);
-                    Foo(f_silver, f_dragon);
-                    Foo(f_silver, e_dragon);
-                    
-                    Foo(e_silver, f_pawn);
-                    Foo(e_silver, e_pawn);
-                    Foo(e_silver, f_silver);
-                    Foo(e_silver, e_silver);
-                    Foo(e_silver, f_gold);
-                    Foo(e_silver, e_gold);
-                    Foo(e_silver, f_bishop);
-                    Foo(e_silver, e_bishop);
-                    Foo(e_silver, f_horse);
-                    Foo(e_silver, e_horse);
-                    Foo(e_silver, f_rook);
-                    Foo(e_silver, e_rook);
-                    Foo(e_silver, f_dragon);
-                    Foo(e_silver, e_dragon);
-                    
-                    Foo(f_gold, f_pawn);
-                    Foo(f_gold, e_pawn);
-                    Foo(f_gold, f_silver);
-                    Foo(f_gold, e_silver);
-                    Foo(f_gold, f_gold);
-                    Foo(f_gold, e_gold);
-                    Foo(f_gold, f_bishop);
-                    Foo(f_gold, e_bishop);
-                    Foo(f_gold, f_horse);
-                    Foo(f_gold, e_horse);
-                    Foo(f_gold, f_rook);
-                    Foo(f_gold, e_rook);
-                    Foo(f_gold, f_dragon);
-                    Foo(f_gold, e_dragon);
-                    
-                    Foo(e_gold, f_pawn);
-                    Foo(e_gold, e_pawn);
-                    Foo(e_gold, f_silver);
-                    Foo(e_gold, e_silver);
-                    Foo(e_gold, f_gold);
-                    Foo(e_gold, e_gold);
-                    Foo(e_gold, f_bishop);
-                    Foo(e_gold, e_bishop);
-                    Foo(e_gold, f_horse);
-                    Foo(e_gold, e_horse);
-                    Foo(e_gold, f_rook);
-                    Foo(e_gold, e_rook);
-                    Foo(e_gold, f_dragon);
-                    Foo(e_gold, e_dragon);
-                    
-                    Foo(f_bishop, f_pawn);
-                    Foo(f_bishop, e_pawn);
-                    Foo(f_bishop, f_silver);
-                    Foo(f_bishop, e_silver);
-                    Foo(f_bishop, f_gold);
-                    Foo(f_bishop, e_gold);
-                    Foo(f_bishop, f_bishop);
-                    Foo(f_bishop, e_bishop);
-                    Foo(f_bishop, f_horse);
-                    Foo(f_bishop, e_horse);
-                    Foo(f_bishop, f_rook);
-                    Foo(f_bishop, e_rook);
-                    Foo(f_bishop, f_dragon);
-                    Foo(f_bishop, e_dragon);
-                    
-                    Foo(e_bishop, f_pawn);
-                    Foo(e_bishop, e_pawn);
-                    Foo(e_bishop, f_silver);
-                    Foo(e_bishop, e_silver);
-                    Foo(e_bishop, f_gold);
-                    Foo(e_bishop, e_gold);
-                    Foo(e_bishop, f_bishop);
-                    Foo(e_bishop, e_bishop);
-                    Foo(e_bishop, f_horse);
-                    Foo(e_bishop, e_horse);
-                    Foo(e_bishop, f_rook);
-                    Foo(e_bishop, e_rook);
-                    Foo(e_bishop, f_dragon);
-                    Foo(e_bishop, e_dragon);
-                    
-                    Foo(f_horse, f_pawn);
-                    Foo(f_horse, e_pawn);
-                    Foo(f_horse, f_silver);
-                    Foo(f_horse, e_silver);
-                    Foo(f_horse, f_gold);
-                    Foo(f_horse, e_gold);
-                    Foo(f_horse, f_bishop);
-                    Foo(f_horse, e_bishop);
-                    Foo(f_horse, f_horse);
-                    Foo(f_horse, e_horse);
-                    Foo(f_horse, f_rook);
-                    Foo(f_horse, e_rook);
-                    Foo(f_horse, f_dragon);
-                    Foo(f_horse, e_dragon);
-                    
-                    Foo(e_horse, f_pawn);
-                    Foo(e_horse, e_pawn);
-                    Foo(e_horse, f_silver);
-                    Foo(e_horse, e_silver);
-                    Foo(e_horse, f_gold);
-                    Foo(e_horse, e_gold);
-                    Foo(e_horse, f_bishop);
-                    Foo(e_horse, e_bishop);
-                    Foo(e_horse, f_horse);
-                    Foo(e_horse, e_horse);
-                    Foo(e_horse, f_rook);
-                    Foo(e_horse, e_rook);
-                    Foo(e_horse, f_dragon);
-                    Foo(e_horse, e_dragon);
-                    
-                    Foo(f_dragon, f_pawn);
-                    Foo(f_dragon, e_pawn);
-                    Foo(f_dragon, f_silver);
-                    Foo(f_dragon, e_silver);
-                    Foo(f_dragon, f_gold);
-                    Foo(f_dragon, e_gold);
-                    Foo(f_dragon, f_bishop);
-                    Foo(f_dragon, e_bishop);
-                    Foo(f_dragon, f_horse);
-                    Foo(f_dragon, e_horse);
-                    Foo(f_dragon, f_rook);
-                    Foo(f_dragon, e_rook);
-                    Foo(f_dragon, f_dragon);
-                    Foo(f_dragon, e_dragon);
-                    
-                    Foo(e_dragon, f_pawn);
-                    Foo(e_dragon, e_pawn);
-                    Foo(e_dragon, f_silver);
-                    Foo(e_dragon, e_silver);
-                    Foo(e_dragon, f_gold);
-                    Foo(e_dragon, e_gold);
-                    Foo(e_dragon, f_bishop);
-                    Foo(e_dragon, e_bishop);
-                    Foo(e_dragon, f_horse);
-                    Foo(e_dragon, e_horse);
-                    Foo(e_dragon, f_rook);
-                    Foo(e_dragon, e_rook);
-                    Foo(e_dragon, f_dragon);
-                    Foo(e_dragon, e_dragon);
-                    
-                    /*Foo(, f_pawn);
-                     Foo(, e_pawn);
-                     Foo(, f_silver);
-                     Foo(, e_silver);
-                     Foo(, f_gold);
-                     Foo(, e_gold);
-                     Foo(, f_bishop);
-                     Foo(, e_bishop);
-                     Foo(, f_horse);
-                     Foo(, e_horse);
-                     Foo(, f_rook);
-                     Foo(, e_rook);
-                     Foo(, f_dragon);
-                     Foo(, e_dragon);*/
+                    for (int k = 0; k < (int)bp.size(); ++k) {
+                        for (int l = 0; l < (int)bp.size(); ++l) {
+                            FooKPP(obp[k], obp[l], bp[k], bp[l]);
+                        }
+                    }
                 }
             }
             

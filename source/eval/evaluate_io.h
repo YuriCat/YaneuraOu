@@ -4,7 +4,7 @@
 // あらゆる形式の評価関数のファイル←→メモリ間、ファイル←→ファイル間の入力/出力、フォーマットの変換を行なう。
 
 #include "../shogi.h"
-
+#include "../evaluate.h"
 namespace EvalIO
 {
 
@@ -85,7 +85,7 @@ namespace EvalIO
 		template <typename T1, typename T2, typename T3>
 		static EvalInfo build_kppt32(T1 kk_, T2 kkp_, T3 kpp_)
 		{
-			EvalInfo ei(81 /* SQ_NB */, 1548 /* EvalKPPT::fe_end */);
+            EvalInfo ei(SQ_NB, Eval::fe_end);
 			ei.eval_info_array.emplace_back(EvalArrayInfo(KK , 4, 2 , FileOrMemory(kk_ ))); // KK は4バイト。(手番ありなので2つ)
 			ei.eval_info_array.emplace_back(EvalArrayInfo(KKP, 4, 2 , FileOrMemory(kkp_))); // KKPは4バイト。
 			ei.eval_info_array.emplace_back(EvalArrayInfo(KPP, 2, 2 , FileOrMemory(kpp_))); // KPPは2バイト。
@@ -97,7 +97,7 @@ namespace EvalIO
 		template <typename T1, typename T2, typename T3>
 		static EvalInfo build_kppt16(T1 kk_, T2 kkp_, T3 kpp_)
 		{
-			EvalInfo ei(81 /* SQ_NB */, 1548 /* EvalKPPT::fe_end */);
+			EvalInfo ei(SQ_NB, Eval::fe_end);
 			ei.eval_info_array.emplace_back(EvalArrayInfo(KK , 2, 2 , FileOrMemory(kk_  ))); // KK は2バイト。(手番ありなので2つ)
 			ei.eval_info_array.emplace_back(EvalArrayInfo(KKP, 2, 2 , FileOrMemory(kkp_ ))); // KKPは2バイト。
 			ei.eval_info_array.emplace_back(EvalArrayInfo(KPP, 2, 2 , FileOrMemory(kpp_ ))); // KPPは2バイト。

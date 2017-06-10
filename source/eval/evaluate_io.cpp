@@ -1,5 +1,5 @@
 ﻿#include "evaluate_io.h"
-
+using namespace Eval;
 namespace EvalIO
 {
 	bool eval_convert(const EvalInfo& input, const EvalInfo& output, const std::vector<u16>* map)
