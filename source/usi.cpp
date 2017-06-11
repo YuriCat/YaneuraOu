@@ -311,7 +311,8 @@ namespace USI
 		//  int contempt = Options["Contempt"] * PawnValue / 100; でPawnValueが100より小さいので
 		// 1だと切り捨てられてしまうからである。
 
-		o["Contempt"] << Option(2, -30000, 30000);
+		//o["Contempt"] << Option(2, -30000, 30000);
+        o["Contempt"] << Option(0, -30000, 30000);
 
 #ifdef USE_ENTERING_KING_WIN
 		// 入玉ルール
