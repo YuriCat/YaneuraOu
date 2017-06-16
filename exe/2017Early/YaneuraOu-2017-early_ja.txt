@@ -8,6 +8,7 @@ NetworkDelay 通信の平均遅延時間[ms]
 NetworkDelay2 通信の最大遅延時間[ms]
 
 Contempt 引き分け時スコア(歩を100とする)
+ContemptFromBlack 引き分け時スコアを先手から見た値とみなす
 MultiPV MultiPV(指し手を上位N個求める)
 
 Param1 パラメータ自動調整用X軸
@@ -55,8 +56,9 @@ EvalShare 評価関数を共有メモリに展開する
 EvalSaveDir 学習時の評価関数の保存先
 PvInterval PVの出力の抑制時間[ms]
 ConsiderationMode 検討モード用のPV出力
+OutputFailLHPV fail_low/highのときもPV出力
 
-nodestime nodes as time
+nodestime nodes_as_time
 EngineNuma EngineNuma
 ResignValue 投了スコア
 SlowMover 序盤重視率[%]

@@ -99,9 +99,10 @@ namespace Eval
 			goto Error;
 >>>>>>> master*/
 
-		//{
-#if 0
-			// kppのp1==p2のところ、値はゼロとなっていること。(参照はするけど学習のときに使いたくないので)
+#if defined(EVAL_LEARN)
+			// kppのp1==p2のところ、値はゼロとなっていること。
+			// (差分計算のときにコードの単純化のために参照はするけど学習のときに使いたくないので)
+			// kppのp1==p2のときはkkpに足しこまれているという考え。
 			{
 				const ValueKpp kpp_zero = { 0,0 };
 				float sum = 0;
@@ -111,15 +112,20 @@ namespace Eval
 						sum += abs(kpp[sq][p][p][0]) + abs(kpp[sq][p][p][1]);
 						kpp[sq][p][p] = kpp_zero;
 					}
-				cout << "sum kp = " << sum << endl;
+			//	cout << "info string sum kp = " << sum << endl;
 			}
 
 #endif
 
-#if 0
-			// Aperyの評価関数バイナリ、kppのp=0のところでゴミが入っている。
+#if defined(EVAL_LEARN)
+			// 以前Aperyの評価関数バイナリ、kppのp=0のところでゴミが入っていた。
 			// 駒落ちなどではここを利用したいので0クリアすべき。
 			{
+				const ValueKkp kkp_zero = { 0,0 };
+				for (auto sq1 : SQ)
+					for (auto sq2 : SQ)
+						kkp[sq1][sq2][0] = kkp_zero;
+
 				const ValueKpp kpp_zero = { 0,0 };
 				for (auto sq : SQ)
 					for (BonaPiece p1 = BONA_PIECE_ZERO; p1 < fe_end; ++p1)
@@ -127,12 +133,6 @@ namespace Eval
 						kpp[sq][p1][0] = kpp_zero;
 						kpp[sq][0][p1] = kpp_zero;
 					}
-
-				const ValueKkp kkp_zero = { 0,0 };
-				for (auto sq1 : SQ)
-					for (auto sq2 : SQ)
-						kkp[sq1][sq2][0] = kkp_zero;
-
 			}
 #endif
 
@@ -341,7 +341,7 @@ namespace Eval
 	{
 		// is_ready()で評価関数を読み込み、
 		// 初期化してからしかcompute_eval()を呼び出すことは出来ない。
-		ASSERT_LV1(kk != nullptr);
+		ASSERT_LV1(&(kk) != nullptr);
 		// →　32bit環境だとこの変数、単なるポインタなのでこのassertは意味がないのだが、
 		// とりあえず開発時に早期に気づくようにこのassertを入れておく。
 
@@ -1026,6 +1026,33 @@ namespace Eval
 		cout << "---\n";
 
 	}
+
+	// 評価関数のそれぞれのパラメーターに対して関数fを適用してくれるoperator。
+	// パラメーターの分析などに用いる。
+	void foreach_eval_param(std::function<void(s32,s32)>f)
+	{
+		// KK
+		for (u64 i = 0; i < (u64)SQ_NB * (u64)SQ_NB; ++i)
+		{
+			auto v = ((ValueKk*)kk)[i];
+			f(v[0], v[1]);
+		}
+
+		// KKP
+		for (u64 i = 0; i < (u64)SQ_NB * (u64)SQ_NB * (u64)fe_end; ++i)
+		{
+			auto v = ((ValueKkp*)kkp)[i];
+			f(v[0], v[1]);
+		}
+
+		// KPP
+		for (u64 i = 0; i < (u64)SQ_NB * (u64)fe_end * (u64)fe_end; ++i)
+		{
+			auto v = ((ValueKpp*)kkp)[i];
+			f(v[0], v[1]);
+		}
+	}
+
 
 }
 

@@ -39,6 +39,12 @@ set option name XXX value ...で設定できるoption
 					  この値のデフォルト値は2にしてある。こうすることで千日手を回避しやすくなるからである。
 					 (1だと内部的な計算で切り捨てられてしまうので効果がない。)
 
+	ContemptFromBlack : Contemptの設定値を先手番から見た値とするオプション。Stockfishからの独自拡張。
+					先手のときは千日手を狙いたくなくて、後手のときは千日手を狙いたいような場合、
+					このオプションをオンにすれば、Contemptをそういう解釈にしてくれる。
+					(Contemptを常に先手から見たスコアだとみなしてくれる。)
+					デフォルトではfalse。
+
 	EvalDir			: 評価関数用のファイルの配置フォルダ(デフォルトでは eval/ )
 					isreadyコマンドで評価関数ファイルを読み込むので、起動後isreadyまでにsetoptionでこの設定を変更しないと効かない。
 
@@ -146,6 +152,8 @@ set option name XXX value ...で設定できるoption
 		ShogiGUIなどの検討モードで用いるためのもので、このオプションをオンにすると
 		中途半端な読み筋が出力されることが減ります。
 
+	OutputFailLHPV    : fail low/highのときにPVを出力するかどうか。ConsiderationModeでも有効。
+
 
 	// 協力詰めsolver時
 
@@ -211,7 +219,7 @@ set option name XXX value ...で設定できるoption
 		go rtime 100
 	とすると、今回の思考時間として、100～300[ms]を使って思考する。
 
-	// やねうら王2016Mid LEARN版のみ
+	// やねうら王2017Early LEARN版のみ
 
 	gensfen [depth 探索深さ] [loop 生成する棋譜の数] [file ファイル名] [eval_limit 評価値]  : 学習用の自己対局棋譜の生成
 		例) gensfen depth 6  (残りは省略可)
@@ -239,3 +247,12 @@ set option name XXX value ...で設定できるoption
 		保存するフォルダは"EvalSaveDir"で指定したフォルダ。
 		デフォルトでは"evalsave"。このフォルダは事前に用意されているものとする。
 		このフォルダ配下にフォルダを"0/","1/",…のように自動的に掘り、そこに評価関数ファイルを保存する。
+
+	教師局面のシャッフル
+	learn basedir BASE_DIR targetdir TARGET_DIR shuffle
+		basedir BASE_DIR と targetdir TARGET_DIR とは省略できる。
+		tmp/
+		というフォルダに一時ファイルが書き出され、最終的に
+		shuffled_sfen.bin
+		がカレントフォルダに書き出される。
+

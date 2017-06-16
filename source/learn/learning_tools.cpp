@@ -7,7 +7,7 @@ namespace EvalLearningTools
 
 	// --- static variables
 
-#if defined (ADA_GRAD_UPDATE)
+#if defined (ADA_GRAD_UPDATE) || defined(ADA_PROP_UPDATE)
 	double Weight::eta;
 #elif defined (SGD_UPDATE)
 	PRNG Weight::prng;
@@ -39,9 +39,13 @@ namespace EvalLearningTools
 
 	void init_min_index_flag()
 	{
+		// mir_piece、inv_pieceの初期化が終わっていなければならない。
+		ASSERT_LV1(mir_piece(Eval::f_hand_pawn) == Eval::f_hand_pawn);
+
 		// 次元下げ用フラグ配列の初期化
 		u64 size = KPP::max_index();
 		min_index_flag.resize(size);
+
 #pragma omp parallel for schedule(guided)
 		for (u64 index = 0; index < size; ++index)
 		{
@@ -258,8 +262,12 @@ namespace EvalLearningTools
 	{
 		//std::cout << "EvalLearningTools init..";
 
-		init_min_index_flag();
+		// mir_piece()とinv_piece()を利用可能にする。
+		// このあとmin_index_flagの初期化を行なうが、そこが
+		// これに依存しているので、こちらを先に行なう必要がある。
 		init_mir_inv_tables();
+
+		init_min_index_flag();
 
 		//std::cout << "done." << std::endl;
 	}

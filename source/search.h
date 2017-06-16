@@ -32,6 +32,12 @@ namespace Search {
 		// それすらなかった場合はfalseを返す。
 		bool extract_ponder_from_tt(Position& pos, Move ponder_candidate);
 
+		// ConsiderationModeのときにTTからPVをかき集めるのでTTのPVが破壊されていると困るから
+		// PV配列をTTに書き戻すことでそれをなるべく防ぐ。
+		// 旧Stockfishにあった機能。Stockfish7あたりでなくなった。
+		// tt_gen : TT.generation()に相当するもの。
+		void insert_pv_to_tt(Position& pos , u8 tt_gen);
+
 		// 今回の(反復深化の)iterationでの探索結果のスコア
 		Value score = -VALUE_INFINITE;
 
@@ -50,7 +56,7 @@ namespace Search {
 		LimitsType() {
 			nodes = time[WHITE] = time[BLACK] = inc[WHITE] = inc[BLACK] = byoyomi[WHITE] = byoyomi[BLACK] = npmsec
 				= depth = movetime = mate = infinite = ponder = rtime = 0;
-			silent = bench = ponder_mode = consideration_mode = false;
+			silent = bench = ponder_mode = consideration_mode = outout_fail_lh_pv = false;
 			max_game_ply = 100000;
 			enteringKingRule = EKR_NONE;
 		}
@@ -118,6 +124,9 @@ namespace Search {
 
 		// 検討モード用のPVを出力するのか
 		bool consideration_mode;
+
+		// fail low/highのときのPVを出力するのか
+		bool outout_fail_lh_pv;
 
 		// ベンチマークモード(このときPVの出力時に置換表にアクセスしない)
 		bool bench;

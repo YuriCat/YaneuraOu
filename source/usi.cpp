@@ -74,6 +74,37 @@ bool ponder_mode;
 // INT_MAXにすると残り手数を計算するときにあふれかねない。
 int max_game_ply = 100000;
 
+// ConsiderationModeのときにTTからPVをかき集めるのでTTのPVが破壊されていると困るから
+// PV配列をTTに書き戻すことでそれをなるべく防ぐ。
+// 旧Stockfishにあった機能。Stockfish7あたりでなくなった。
+namespace Search {
+	// tt_gen : TT.generation()に相当するもの。
+	void RootMove::insert_pv_to_tt(Position& pos , u8 tt_gen)
+	{
+		StateInfo state[MAX_PLY];
+		bool ttHit;
+
+		int ply = 0;
+		for (Move m : pv)
+		{
+			ASSERT_LV3(MoveList<LEGAL>(pos).contains(m) || m == MOVE_WIN);
+
+			auto* tte = TT.probe(pos.key(), ttHit);
+			if (!ttHit || pos.move16_to_move(tte->move()) != m)
+				tte->save(pos.key(), VALUE_NONE, BOUND_NONE, DEPTH_NONE, m, VALUE_NONE, tt_gen);
+
+			// MOVE_WINの指し手で局面を進められないのでここで打ち切る。
+			if (m == MOVE_WIN)
+				break;
+
+			pos.do_move(m, state[ply++]);
+		}
+
+		while(ply > 0)
+			pos.undo_move(pv[--ply]);
+	}
+}
+
 namespace USI
 {
 	// 入玉ルール
@@ -192,27 +223,64 @@ namespace USI
 				auto pos_ = const_cast<Position*>(&pos);
 				Move moves[MAX_PLY + 1];
 				StateInfo si[MAX_PLY];
-				moves[0] = rootMoves[i].pv[0];
 				int ply = 0;
-				while (ply < MAX_PLY && moves[ply] != MOVE_NONE)
+
+				while ( ply < MAX_PLY )
 				{
-					pos_->do_move(moves[ply], si[ply]);
-					ss << " " << moves[ply];
-					bool found;
-					auto tte = TT.probe(pos.state()->key(), found);
-					ply++;
-					if (found)
+					// 千日手はそこで終了。ただし初手はPVを出力。
+					// 千日手がベストのとき、置換表を更新していないので
+					// 置換表上はMOVE_NONEがベストの指し手になっている可能性があるので早めに検出する。
+					auto rep = pos.is_repetition();
+					if (rep != REPETITION_NONE && ply >= 1)
 					{
-						// 置換表にはpsudo_legalではない指し手が含まれるのでそれを弾く。
-						// legal()の判定もここでしておく。
-						Move m = pos.move16_to_move(tte->move());
-						if (pos.pseudo_legal(m) && pos.legal(m))
-							moves[ply] = m;
-						else
-							moves[ply] = MOVE_NONE;
+						// 千日手でPVを打ち切るときはその旨を表示
+						ss << " " << rep;
+						break;
 					}
+
+					Move m;
+
+					// MultiPVを考慮して初手は置換表からではなくrootMovesから取得
+					// rootMovesには宣言勝ちも含まれるので注意。
+					if (ply == 0)
+						m = rootMoves[i].pv[0];
 					else
-						moves[ply] = MOVE_NONE;
+					{
+						// 次の手を置換表から拾う。
+						bool found;
+						auto* tte = TT.probe(pos.state()->key(), found);
+
+						// 置換表になかった
+						if (!found)
+							break;
+
+						m = tte->move();
+
+						// 置換表にはpsudo_legalではない指し手が含まれるのでそれを弾く。
+						// 宣言勝ちでないならこれが合法手であるかのチェックが必要。
+						if (m != MOVE_WIN)
+						{
+							m = pos.move16_to_move(m);
+							if (!(pos.pseudo_legal(m) && pos.legal(m)))
+								break;
+						}
+					}
+
+					// 宣言勝ちである
+					if (m == MOVE_WIN)
+					{
+						// これが合法手であるなら宣言勝ちであると出力。
+						if (pos.DeclarationWin() != MOVE_NONE)
+							ss << " " << MOVE_WIN;
+
+						break;
+					}
+
+					moves[ply] = m;
+					ss << " " << m;
+
+					pos_->do_move(m, si[ply]);
+					++ply;
 				}
 				while (ply > 0)
 					pos_->undo_move(moves[--ply]);
@@ -242,7 +310,6 @@ namespace USI
 
 		return ss.str();
 	}
-
 
 	// --------------------
 	//     USI::Option
@@ -312,7 +379,16 @@ namespace USI
 		// 1だと切り捨てられてしまうからである。
 
 		//o["Contempt"] << Option(2, -30000, 30000);
-        o["Contempt"] << Option(0, -30000, 30000);
+        //o["Contempt"] << Option(0, -30000, 30000);
+        o["Contempt"] << Option(VALUE_MATE, -30000, 30000);
+
+		// Contemptの設定値を先手番から見た値とするオプション。Stockfishからの独自拡張。
+		// 先手のときは千日手を狙いたくなくて、後手のときは千日手を狙いたいような場合、
+		// このオプションをオンにすれば、Contemptをそういう解釈にしてくれる。
+		// この値がtrueのときは、Contemptを常に先手から見たスコアだとみなす。
+
+		//o["ContemptFromBlack"] << Option(false);
+        o["ContemptFromBlack"] << Option(true);
 
 #ifdef USE_ENTERING_KING_WIN
 		// 入玉ルール

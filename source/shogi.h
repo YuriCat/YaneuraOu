@@ -8,7 +8,7 @@
 
 // 思考エンジンのバージョンとしてUSIプロトコルの"usi"コマンドに応答するときの文字列。
 // ただし、この値を数値として使用することがあるので数値化できる文字列にしておく必要がある。
-#define ENGINE_VERSION "4.65"
+#define ENGINE_VERSION "4.67b"
 
 // --------------------
 // コンパイル時の設定
@@ -588,6 +588,7 @@ constexpr Move make_move_drop(Piece pt, Square to) { return (Move)(to + (pt << 7
 // 指し手がおかしくないかをテストする
 // ただし、盤面のことは考慮していない。MOVE_NULLとMOVE_NONEであるとfalseが返る。
 // これら２つの定数は、移動元と移動先が等しい値になっている。このテストだけをする。
+// MOVE_WIN(宣言勝ちの指し手は)は、falseが返る。
 inline bool is_ok(Move m) {
   // return move_from(m)!=move_to(m);
   // とやりたいところだが、駒打ちでfromのbitを使ってしまっているのでそれだとまずい。
@@ -839,6 +840,9 @@ enum RepetitionState
 };
 
 inline bool is_ok(RepetitionState rs) { return REPETITION_NONE <= rs && rs < REPETITION_NB; }
+
+// RepetitionStateを文字列化して出力する。PVの出力のときにUSI拡張として出力するのに用いる。
+std::ostream& operator<<(std::ostream& os, RepetitionState rs);
 
 // 引き分け時のスコア
 extern Value drawValueTable[REPETITION_NB][COLOR_NB];

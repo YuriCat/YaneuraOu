@@ -33,6 +33,9 @@
 // 勾配の符号だけ見るSGD。省メモリで済むが精度は…。
 // #define SGD_UPDATE
 
+// RMSProp風のAdaGrad
+// #define ADA_PROP_UPDATE
+
 
 // ----------------------
 //    学習時の設定
@@ -98,10 +101,9 @@
 // 学習に関するデバッグ設定
 // ----------------------
 
-// 学習時のrmseとタイムスタンプの出力をこの回数に1回に減らす。
+// 学習時のrmseの出力をこの回数に1回に減らす。
 // rmseの計算は1スレッドで行なうためそこそこ時間をとられるので出力を減らすと効果がある。
 #define LEARN_RMSE_OUTPUT_INTERVAL 1
-#define LEARN_TIMESTAMP_OUTPUT_INTERVAL 10
 
 
 // ----------------------
@@ -146,7 +148,7 @@ typedef float LearnFloatType;
 
 
 // ----------------------
-//    標準の学習方法
+//    標準の学習方法(普通の雑巾絞り)
 // ----------------------
 
 #if defined (LEARN_DEFAULT)
@@ -177,10 +179,13 @@ typedef float LearnFloatType;
 
 #define ADA_GRAD_UPDATE
 //#define SGD_UPDATE
+//#define ADA_PROP_UPDATE
 
 // 実験時は1回だけの保存で良い。
 // #define EVAL_SAVE_ONLY_ONCE
 
+// 局面はシャッフルしてから渡すので読み込み時のシャッフルは不要。
+#define LEARN_SFEN_NO_SHUFFLE
 #endif
 
 
